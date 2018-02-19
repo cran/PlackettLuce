@@ -1,7 +1,7 @@
 Package: PlackettLuce
 Type: Package
 Title: Plackett-Luce Models for Rankings
-Version: 0.2-1
+Version: 0.2-2
 Authors@R: c(person("Heather", "Turner", email =
         "ht@heatherturner.net", role = c("aut", "cre")),
         person("Ioannis", "Kosmidis", role = "aut"), person("David",
@@ -30,11 +30,11 @@ Suggests: BiocStyle, BradleyTerry2, BradleyTerryScalable, Matrix.utils,
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2017-12-07 11:08:17 UTC; hturner
+Packaged: 2018-02-19 21:47:23 UTC; hturner
 Author: Heather Turner [aut, cre],
   Ioannis Kosmidis [aut],
   David Firth [aut],
   Jacob van Etten [ctb]
 Maintainer: Heather Turner <ht@heatherturner.net>
 Repository: CRAN
-Date/Publication: 2017-12-07 12:14:38 UTC
+Date/Publication: 2018-02-19 22:02:15 UTC

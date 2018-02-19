@@ -1,5 +1,5 @@
-# utility functions to create ranking data structures/X matrix for log-linear models
-# maybe just for testing or at some point could be tidied up and exported
+# utility functions to create ranking data structures/X matrix for log-linear
+# models maybe just for testing or at some point could be tidied up and exported
 
 # okay to aggregate for vcov computation, but not for logLik
 #' @importFrom utils combn
@@ -30,7 +30,7 @@ poisson_rankings <- function(rankings, weights = NULL, aggregate = TRUE,
         agg <- c("choices", "alternatives")
         choices[agg] <- lapply(choices[agg], function(x) x[keep])
         choices$n <- tabulate(g)
-        choices$w <- as.integer(rowsum(choices$w[keep], g[keep]))
+        choices$w <- as.numeric(rowsum(choices$w[keep], g[keep]))
         size <- lengths(unique_alternatives)
     } else {
         choices$n <- 1
@@ -103,3 +103,31 @@ poisson_rankings <- function(rankings, weights = NULL, aggregate = TRUE,
     } else list(y = y, X = X, z = z, w = w)
 }
 
+## A quick way to generate arbitrary ranking data to experinment with
+## The larger tie is the lower the chance of a tie is
+#' @importFrom stats runif
+generate_rankings <- function(maxi, n_rankings = 10, tie = 5, seed = NULL) {
+    if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
+        runif(1)
+    if (is.null(seed))
+        RNGstate <- get(".Random.seed", envir = .GlobalEnv)
+    else {
+        R.seed <- get(".Random.seed", envir = .GlobalEnv)
+        set.seed(seed)
+        RNGstate <- structure(seed, kind = as.list(RNGkind()))
+        on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+    }
+    mat <- replicate(n_rankings, {
+        s <- sample(maxi, maxi)
+        m <- sample(maxi, 1)
+        s <- s[s <= m]
+        v <- numeric(maxi)
+        v[sample(maxi, min(m, maxi))] <- s
+        v0 <- v==0
+        if (length(v0))
+            v[v0] <- sample(0:max(s), sum(v0), replace = TRUE,
+                            prob = c(tie, rep(1/max(s), max(s))))
+        v
+    })
+    as.rankings(t(mat))
+}

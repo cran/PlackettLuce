@@ -1,8 +1,11 @@
 ## ----vignette-setup, include = FALSE---------------------------------------
 library(knitr)
-library(kableExtra)
 eval_all <- FALSE # evaluate all timings and pltree?
-options(knitr.table.format = opts_knit$get("rmarkdown.pandoc.to"))
+# if render using rmarkdown, use output format to decide table format
+table.format <- opts_knit$get("rmarkdown.pandoc.to")
+if (!identical(table.format, "latex")) table.format <- "html"
+opts_knit$set(knitr.table.format = table.format)
+opts_chunk$set(message = FALSE)
 
 ## ---- echo = FALSE---------------------------------------------------------
 as.matrix(data.frame(choice = c(1, 1, 1, 2, 2),
@@ -104,12 +107,14 @@ features <- cbind(c(1256, 30, 5000),
                   c(4, 11, 10))
 dimnames(features) <- list(c("Netflix", "T-shirt", "Sushi"),
                            c("Rankings", "Unique rankings", "Items"))
-kable(features,
-      caption = "(ref:features)",
-      booktabs = TRUE) %>%
-    kable_styling()
+kab <- kable(features,
+             caption = "(ref:features)",
+             booktabs = TRUE) 
+if (requireNamespace("kableExtra")){
+    kableExtra::kable_styling(kab)
+} else kab
 
-## ----timings-kable, echo = FALSE-------------------------------------------
+## ----timings-kable, echo = FALSE, results = "asis"-------------------------
 res <- data.frame(netflix = round(unlist(netflix_timings), 3),
                   tshirt = format(unlist(tshirt_timings), 3),
                   sushi = round(unlist(sushi_timings), 3),
@@ -121,11 +126,17 @@ dimnames(res) <- list(c("Netflix", "T-shirt", "Sushi"),
                       c("PlackettLuce",
                         "hyper2", "PLMIX", "pmr", "StatRank"))
 
-kable(res, booktabs = TRUE, align = rep("r", 6), caption = "(ref:timings)",
-      escape = FALSE) %>%
-    kable_styling() %>%
-    add_header_above(c(" " = 1, "Time elapsed (s)" = 5)) %>%
-    add_footnote("Function fails to complete.", notation = "alphabet")
+kab <- kable(res, booktabs = TRUE, align = rep("r", 6), caption = "(ref:timings)",
+             escape = FALSE)
+if (requireNamespace("kableExtra")){
+    kab <- kableExtra::kable_styling(kab)
+    kab <- kableExtra::add_header_above(kab, c(" " = 1, "Time elapsed (s)" = 5))
+    kableExtra::add_footnote(kab, "Function fails to complete.", 
+                             notation = "alphabet")
+} else {
+    cat("**Time elapsed (s)**\n", kab, "\n^a Function fails to complete.", 
+        sep = "\n")
+}
 
 ## ----timings-sub, eval = eval_all, echo = FALSE, message = FALSE, warning = FALSE----
 #  data(Data.Nascar, package = "StatRank")
@@ -148,10 +159,13 @@ res <- data.frame(Rankings = 36,
                   PlackettLuce = res[1],
                   hyper2 = res[2],
                   check.names = FALSE, row.names = NULL)
-kable(res, booktabs = TRUE, align = rep("r", 5),
-      caption = "(ref:nascar)") %>%
-    kable_styling() %>%
-    add_header_above(c("Features of NASCAR data" = 3, "Time elapsed (s)" = 2))
+kab <- kable(res, booktabs = TRUE, align = rep("r", 5),
+      caption = "(ref:nascar)") 
+if (requireNamespace("kableExtra")){
+    kab <- kableExtra::kable_styling(kab)
+    kableExtra::add_header_above(kab, c("Features of NASCAR data" = 3, 
+                                        "Time elapsed (s)" = 2))
+} else kab
 
 ## ----package-summary, echo = FALSE-----------------------------------------
 tab <- data.frame(Feature = c("Inference", "Disconnected networks",
@@ -161,9 +175,11 @@ tab <- data.frame(Feature = c("Inference", "Disconnected networks",
                   pmr = c("No", "No", "No", "No", "No"),
                   StatRank = c("No", "No", "No", "No", "No"),
                   PLMIX = c("Bayesian", "Yes", "No", "No", "Mixtures"))
-kable(tab, booktabs = TRUE,
-      caption = "Features of packages for fitting the Plackett-Luce model.") %>%
-    kable_styling()
+kab <- kable(tab, booktabs = TRUE,
+      caption = "Features of packages for fitting the Plackett-Luce model.")
+if (requireNamespace("kableExtra")){
+    kableExtra::kable_styling(kab)
+} else kab
 
 ## --------------------------------------------------------------------------
 library(PlackettLuce)

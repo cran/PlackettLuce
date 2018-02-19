@@ -1,6 +1,7 @@
 
 # PlackettLuce
 
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/PlackettLuce)](https://cran.r-project.org/package=PlackettLuce)
 [![Travis-CI Build
 Status](https://travis-ci.org/hturner/PlackettLuce.svg?branch=master)](https://travis-ci.org/hturner/PlackettLuce)
 [![AppVeyor Build
@@ -46,7 +47,13 @@ In addition the package provides methods for
 
 ## Installation
 
-The package may be installed from GitHub via
+The package may be installed from CRAN via
+
+``` r
+install.packages("PlackettLuce")
+```
+
+The development version can be installed via
 
 ``` r
 # install.packages("devtools")
@@ -189,7 +196,7 @@ quasi standard errors.
 
 ``` r
 qv <- qvcalc(mod)
-plot(qv)
+plot(qv, ylab = "Worth (log)", main = NULL)
 ```
 
 ![](man/figures/qv-1.png)<!-- -->

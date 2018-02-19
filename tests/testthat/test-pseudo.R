@@ -4,6 +4,7 @@ context("implementation [pseudo-data]")
 source_files <- dir(system.file("PlackettLuce0", package = "PlackettLuce"),
                     full.names = TRUE)
 
+## N.B. fitted0 requires tibble but unused in tests
 for (file0 in source_files) source(file0)
 
 
@@ -89,8 +90,8 @@ model5 <- PlackettLuce(rankings = G, npseudo = 0.5, method = "BFGS",
 test_that("pseudo data works with BFGS [weakly connected network]",
           {
               # coef
-              expect_equal(coef(model3), coef(model5),
-                           tolerance = coef_tol)
+              expect_equivalent(coef(model3), coef(model5),
+                                tolerance = coef_tol)
               # log-likelihood
               expect_equal(logLik(model3), logLik(model5),
                            tolerance = loglik_tol)
@@ -101,8 +102,8 @@ model6 <- PlackettLuce(rankings = G, npseudo = 0.5, method = "BFGS",
 test_that("pseudo data works with L-BFGS [weakly connected network]",
           {
               # coef
-              expect_equal(coef(model3), coef(model6),
-                           tolerance = coef_tol)
+              expect_equivalent(coef(model3), coef(model6),
+                                tolerance = coef_tol)
               # log-likelihood
               expect_equal(logLik(model3), logLik(model6),
                            tolerance = loglik_tol)
