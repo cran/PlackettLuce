@@ -1,9 +1,23 @@
+# PlackettLuce 0.2-3
+
+## Improvements
+
+* Print methods for `"PlackettLuce"` and `"summary.PlacketLuce"` objects now respect `options("width")`.
+
+## Changes in Behaviour
+
+* `fitted` always returns `n` which is now weighted count of rankings (previously only returned unweighted count with argument `aggregate = TRUE`).
+
+## Bug fixes
+
+* Correct vcov for weighted rankings of more than two items.
+* Enable `AIC.pltree` to work on `"pltree"` object with one node.
+
 # PlackettLuce 0.2-2
 
 ## New features
 
-* Add `AIC.PlackettLuce` to enable computation of AIC on new observations (e.g.
-data held out in cross-validation).
+* Add `AIC.pltree` to enable computation of AIC on new observations (e.g. data held out in cross-validation).
 * Add `fitted.pltree` to return combined fitted probabilities for each choice within each ranking, for each node in a Plackett-Luce tree.
 
 ## Bug fixes

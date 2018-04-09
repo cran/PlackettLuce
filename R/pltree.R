@@ -100,16 +100,12 @@ pltree <- function (formula, data, subset, na.action, cluster, ref = NULL, ...){
     m <- m[!control_args]
     m$control <- control
     m$fit <- as.name("plfit")
-    m[[1L]] <- as.name("mob")
+    m[[1L]] <- quote(partykit::mob)
     rval <- eval(m, parent.frame())
     rval$info$call <- m
     class(rval) <- c("pltree", "bttree", class(rval))
     return(rval)
 }
-
-#' @importFrom partykit mob
-#' @export
-partykit::mob
 
 #' @method print pltree
 #' @export
@@ -121,11 +117,11 @@ print.pltree <- function (x, title = "Plackett-Luce tree",
 }
 
 #' @method plot pltree
+#' @importFrom psychotree node_btplot
 #' @export
-plot.pltree <- function (x, terminal_panel = psychotree::node_btplot,
+plot.pltree <- function (x, terminal_panel = node_btplot,
                          tp_args = list(...),
                          tnex = NULL, drop_terminal = NULL, ...){
-    requireNamespace("psychotree")
     NextMethod()
 }
 
@@ -176,6 +172,14 @@ coef.pltree <- function (object, node = NULL, drop = TRUE, ...) {
     }
 }
 
+#' @method itempar pltree
+#' @export
+itempar.pltree <- function (object, ...){
+    # so unexported itempar.bttree is used from psychotree
+    requireNamespace("psychotree")
+    NextMethod()
+}
+
 #' @rdname pltree
 #' @method predict pltree
 #' @export
@@ -192,11 +196,6 @@ predict.pltree <- function(object, newdata = NULL,
         }
         if (is.null(newdata)) {
             newdata <- model.frame(object)
-        } else if (type == "aic"){
-            response <- as.character(formula(object)[[2]])
-            if (!response %in% colnames(newdata))
-                stop("`newdata` must include response when `type = \"aic\"`")
-            newdata <- model.frame(formula(object), data = newdata)
         }
         pred <- switch(type,
                        itempar = function(obj, ...) {
@@ -231,11 +230,12 @@ AIC.pltree <- function(object, newdata = NULL, ...) {
     newdata <- model.frame(f, data = newdata, ...)
     # predict node for each grouped ranking
     node <- partykit::predict.modelparty(object,
-                                        newdata = newdata,
-                                        type = "node")
+                                         newdata = newdata,
+                                         type = "node")
     # set up to refit models based on newdata
     cf <- itempar(object)
-    nodes <- rownames(cf)
+    if (is.null(dim(cf))) cf <- t(as.matrix(cf))
+    nodes <- partykit::nodeids(object, terminal = TRUE)
     dots <- object$info$dots
     G <- model.response(newdata)
     w <- model.weights(newdata)
