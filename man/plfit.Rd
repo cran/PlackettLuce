@@ -4,7 +4,7 @@
 \alias{plfit}
 \title{PlackettLuce Wrapper for Model-based Recursive Partitioning}
 \usage{
-plfit(y, x = NULL, ref = 1, start = NULL, weights = NULL,
+plfit(y, x = NULL, ref = 1L, start = NULL, weights = NULL,
   offset = NULL, ..., estfun = FALSE, object = FALSE)
 }
 \arguments{
@@ -13,11 +13,16 @@ model.}
 
 \item{x}{unused.}
 
-\item{ref}{an integer or character string specifying the reference item (for
+\item{ref}{An integer or character string specifying the reference item (for
 which log worth will be set to zero). If \code{NULL} the sum of the log worth
 parameters is set to zero.}
 
-\item{start}{starting values for the worth parameters and the tie parameters: either the result of a call to \code{coef.PlackettLuce}, or a vector of parameters on the raw scale, as in the \code{coefficients} element of a \code{"PlackettLuce"} object.}
+\item{start}{starting values for the worth parameters and the tie parameters
+on the raw scale (worth parameters need not be scaled to sum to 1). If
+\code{normal} is specified, \code{exp(normal$mu)} is used as starting values
+for the worth parameters. Coefficients from a previous fit can be passed as
+the result of a call to  \code{coef.PlackettLuce}, or the \code{coefficients}
+element of a \code{"PlackettLuce"} object.}
 
 \item{weights}{an optional vector of weights for each ranking.}
 

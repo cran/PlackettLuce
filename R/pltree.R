@@ -10,6 +10,11 @@
 #' rankings with common covariate values. This may be included in a data frame
 #' alongside the covariates.
 #'
+#' Most arguments of \code{PlackettLuce} can be passed on by \code{pltree}.
+#' However, Plackett-Luce tree with fixed adherence are not implemented.
+#' Arguably it makes more sense to estimate adherence or reliability within
+#' the nodes of the Plackett-Luce tree.
+#'
 #' Various methods are provided for \code{"pltree"} objects, most of them
 #' inherited from \code{"modelparty"} objects (e.g. \code{print},
 #' \code{summary}), or \code{"bttree"} objects (\code{plot}). \code{itempar}
@@ -17,8 +22,8 @@
 #' each node of the tree using \code{\link{itempar.PlackettLuce}}. The plot
 #' method employs the \code{\link[psychotree]{node_btplot}}
 #' panel-generating function. \code{AIC} computes
-#' \eqn{-2L + 2df}{-2 * L + 2 * df} where \eqn{L} is the joint likelihood of
-#' the observed rankings under the tree model and \eqn{df} is the degrees of
+#' \eqn{-2L + 2p}{-2 * L + 2 * p} where \eqn{L} is the joint likelihood of
+#' the observed rankings under the tree model and \eqn{p} is the degrees of
 #' freedom used to fit the tree model.
 #'
 #' @param formula a symbolic description of the model to be fitted, of the form
@@ -37,6 +42,8 @@
 #' \code{pltree}; to \code{\link{itempar}} by \code{predict}, and to
 #' \code{\link{model.frame}} by \code{AIC}.
 #' @param object a fitted model object of class \code{"pltree"}.
+#' @param node a vector of node ids specifying the nodes to summarise, by
+#' default the ids of the terminal nodes.
 #' @param newdata an optional data frame to use instead of the
 #' original data. For \code{AIC} this must include the response variable.
 #' @param type the type of prediction to return for each group, one of:
@@ -150,7 +157,7 @@ coef.pltree <- function (object, node = NULL, drop = TRUE, ...) {
                       lapply(ids, FUN = function(n, ...){
                           # compute coef as returned from original fit
                           info <- info_node(object[[n]]$node)
-                          n <- length(info$coefficients) - info$maxTied + 1
+                          n <- length(info$coefficients) - info$maxTied + 1L
                           info$coefficients <- exp(info$coefficients)
                           id <- seq_len(n)
                           info$coefficients[id] <-
@@ -173,11 +180,23 @@ coef.pltree <- function (object, node = NULL, drop = TRUE, ...) {
 }
 
 #' @method itempar pltree
+#' @importFrom partykit nodeapply
 #' @export
 itempar.pltree <- function (object, ...){
     # so unexported itempar.bttree is used from psychotree
     requireNamespace("psychotree")
-    NextMethod()
+    res <- NextMethod()
+    if (is.vector(res)){
+        return(matrix(res, nrow = 1L, dimnames = list("1", names(res))))
+    }
+    res
+}
+
+#' @rdname pltree
+#' @method vcov pltree
+vcov.pltree <- function (object, node = nodeids(object, terminal = TRUE), ...){
+   nodeapply(object, ids = node,
+             FUN = function(n) vcov(info_node(n)$object, ...))
 }
 
 #' @rdname pltree
@@ -222,13 +241,13 @@ AIC.pltree <- function(object, newdata = NULL, ...) {
         return(NextMethod(object, ...))
     }
     # create model.frame from newdata
-    response <- as.character(formula(object)[[2]])
+    response <- as.character(formula(object)[[2L]])
     if (!response %in% colnames(newdata))
         stop("`newdata` must include response")
     f <- formula(object)
     environment(f) <- parent.frame()
     newdata <- model.frame(f, data = newdata, ...)
-    # predict node for each grouped ranking
+    # predict node for each grouped rankingnodeids(tm_tree, terminal = TRUE)
     node <- partykit::predict.modelparty(object,
                                          newdata = newdata,
                                          type = "node")
@@ -239,7 +258,7 @@ AIC.pltree <- function(object, newdata = NULL, ...) {
     dots <- object$info$dots
     G <- model.response(newdata)
     w <- model.weights(newdata)
-    if (is.null(w)) w <- rep.int(1, length(G))
+    if (is.null(w)) w <- rep.int(1L, length(G))
     LL <- df <- numeric(length(nodes))
     for (i in seq_along(nodes)){
         # fit model with coef fixed to get logLik
@@ -258,7 +277,7 @@ AIC.pltree <- function(object, newdata = NULL, ...) {
     }
     # compute AIC based on total log likelihood of data
     # and df of original model fit
-    -2*sum(LL) + 2*attr(logLik(object), "df")
+    -2L*sum(LL) + 2L*attr(logLik(object), "df")
 }
 
 #' @rdname fitted.PlackettLuce
@@ -276,7 +295,7 @@ fitted.pltree <- function(object, aggregate = TRUE, free = TRUE, ...)  {
                       fitted.PlackettLuce)
     }
     # combine fitted from each node
-    n <- vapply(fit, function(x) length(x[[1]]), 1)
+    n <- vapply(fit, function(x) length(x[[1L]]), 1.0)
     fit <- do.call(Map, c(c, fit))
     fit$node <- rep.int(ids, n)
     fit

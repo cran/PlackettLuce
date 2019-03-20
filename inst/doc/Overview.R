@@ -1,6 +1,7 @@
-## ----vignette-setup, include = FALSE---------------------------------------
+## ----setup, include = FALSE------------------------------------------------
 library(knitr)
 eval_all <- FALSE # evaluate all timings and pltree?
+extra <- requireNamespace("kableExtra")
 # if render using rmarkdown, use output format to decide table format
 table.format <- opts_knit$get("rmarkdown.pandoc.to")
 if (!identical(table.format, "latex")) table.format <- "html"
@@ -110,7 +111,7 @@ dimnames(features) <- list(c("Netflix", "T-shirt", "Sushi"),
 kab <- kable(features,
              caption = "(ref:features)",
              booktabs = TRUE) 
-if (requireNamespace("kableExtra")){
+if (extra){
     kableExtra::kable_styling(kab)
 } else kab
 
@@ -128,7 +129,7 @@ dimnames(res) <- list(c("Netflix", "T-shirt", "Sushi"),
 
 kab <- kable(res, booktabs = TRUE, align = rep("r", 6), caption = "(ref:timings)",
              escape = FALSE)
-if (requireNamespace("kableExtra")){
+if (extra){
     kab <- kableExtra::kable_styling(kab)
     kab <- kableExtra::add_header_above(kab, c(" " = 1, "Time elapsed (s)" = 5))
     kableExtra::add_footnote(kab, "Function fails to complete.", 
