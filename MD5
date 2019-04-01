@@ -1,8 +1,8 @@
-bb6367ecc9496643bd705852d90d2239 *DESCRIPTION
+3e13cb12a301406bdac4ee1270248485 *DESCRIPTION
 f73d4b552ea74fb69075ce546f522aa7 *NAMESPACE
-c6d95e4523d97ca6247d90c0a2498b53 *NEWS.md
+66bf3923212224c93072acd3e744c3c1 *NEWS.md
 e34eb2a144d0b6315e33303ea1fd9dcf *R/PlackettLuce-package.R
-51f5f6cce8d42cb4e39a46f77f77f852 *R/PlackettLuce.R
+ff6f45abfa47fe3a04d1470f695c56a9 *R/PlackettLuce.R
 b7ef31fd095293380645d6e64a7de9df *R/adjacency.R
 533131050b4cf8d63bb88b5131a88a81 *R/beans.R
 79bc79ffcbd2757c6451117cdce5c2dd *R/choices.R
@@ -27,7 +27,7 @@ fce549d9b4eee68a6f7a21e21af62345 *R/simulate.R
 788cd0b1cf18a562baa93fdad125a31c *R/utility.R
 2b8f1cadd2d6430da7cac1f0d3ae5979 *R/vcov.R
 6191c09aace508599fefa0b386821c9e *README.md
-7fb6b888427e17700cb67cbd3803ce1f *TODO
+52badcd979cca5478744e5ed549c4dbc *TODO
 08cff7b40a1122c2a18f5353915db11d *build/vignette.rds
 a6f15f7b5fba097411b10ebab8bdc40c *data/beans.rda
 c1f0304c857d471551c71f4603f074fc *data/nascar.rda
@@ -48,7 +48,7 @@ c012854a3cccaed55a32d7b172b9a078 *inst/Reference_Implementations/vcov_hessian.R
 120264080592432e43f963e7f81ffb9a *inst/WORDLIST
 0c7fe30a2f8487f745c7c8c59dc18a14 *inst/doc/Overview.R
 c2690a706a3dd47483ddf6f0a6722bb8 *inst/doc/Overview.Rmd
-444ac6119ddb6f9ff74bb7dfacc47f9d *inst/doc/Overview.html
+3c2f777be2944544ab2ab6565bd05428 *inst/doc/Overview.html
 ee743a89251c335c747aa605abc7103a *man/PlackettLuce-package.Rd
 0cad40729498cd46960f6ea5a95b91ee *man/PlackettLuce.Rd
 a628085b7aa440e6ff193cbe4835ba98 *man/adjacency.Rd
@@ -73,6 +73,7 @@ ded9a5e5f3b2df193c24cb835a35ea59 *man/summaries.Rd
 0cb4377f0c663060b0247ee534435e78 *tests/netflix.rda
 dd11f54214b7fe23840ea327512383b8 *tests/pudding.rda
 fbe2f2cfa059f1e4cf9a493369a0688d *tests/testthat.R
+974e23ecddc9eef6173706a7642151ec *tests/testthat/Rplots.pdf
 1d51a4ac0ccc6eee79cd541a12f770dd *tests/testthat/outputs/fitted.rds
 41005e351004c74432651b7774284ec8 *tests/testthat/outputs/fitted_all.rds
 1525cea1e78b2f01c1d7ae5023c5e67c *tests/testthat/outputs/fitted_individual.rds
@@ -82,14 +83,14 @@ bee83e7398d1a011573ee1a144ee3b6c *tests/testthat/outputs/pltree_adherence_beans.
 b1d088368a1198b2afdc3736aa5bfb41 *tests/testthat/outputs/print.rds
 da29a46df6870dd78222e621e87e3c7d *tests/testthat/outputs/print.summary.rds
 5bde57016a1ca7299141d76e1ee3ae74 *tests/testthat/test-S3-methods.R
-940c9944255e1dcb7058f30ae3f609e5 *tests/testthat/test-adherence.R
+a00004f835c5b5b5adff0dac4642e8bb *tests/testthat/test-adherence.R
 0355f919764c5bce8d735c99a88ef3b7 *tests/testthat/test-agrank.R
 68a357db50ef4707d43c14d4bf05d319 *tests/testthat/test-algorithms.R
 7dc1044aa6e3e9738b89afb485a48cc3 *tests/testthat/test-estfun.R
 ce304e430f812d182587c97b8c9f69ae *tests/testthat/test-log-likelihood.R
 2504cb9b2bf7f4e73752a64bcb9f657b *tests/testthat/test-networks.R
 c8fb4926844414da304a35c6489ee43e *tests/testthat/test-pseudo.R
-1deadeb929496084e4e0a1c1d2c44293 *tests/testthat/test-psycho.R
+5fa8e9c83384818c382736eff14b8bd8 *tests/testthat/test-psycho.R
 413395da1e1e4d7c0df6e4f7704277f0 *tests/testthat/test-rankings.R
 a01be6f54024bd50175d47b1ca42d0f7 *tests/testthat/test-reference.R
 4d144e6027bb697d255c27845d1b9256 *tests/testthat/test-simulate.R

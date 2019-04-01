@@ -61,7 +61,8 @@ test_that('estimated adherence works for grouped_rankings [fake triples]', {
                          gamma = list(shape = 10, rate = 10))
     mod2 <- PlackettLuce(G, npseudo = 0, gamma = list(shape = 10, rate = 10))
     # remove bits we expect to be different
-    nm <- setdiff(names(mod1), c("call"))
+    # iter can be different on some platform due to small difference in rowsums
+    nm <- setdiff(names(mod1), c("call", "iter"))
     expect_equal(mod1[nm], mod2[nm])
     expect_equal(mod1$adherence[mod1$ranker], mod2$adherence[mod2$ranker])
 
@@ -146,11 +147,12 @@ G <- grouped_rankings(R, rep(seq_len(nrow(beans)), 4))
 
 test_that('fixed adherence works for grouped_rankings [beans]', {
     # adherence = 1 is same as no adherence
-    adherence <- rep(1, nrow(beans))
+    adherence <- rep(1L, nrow(beans))
     mod1 <- PlackettLuce(G)
     mod2 <- PlackettLuce(G, adherence = adherence)
     # remove bits we expect to be different
-    nm <- setdiff(names(mod1), c("call", "adherence"))
+    # iter can change on same platforms as rankings not aggregated in mod2
+    nm <- setdiff(names(mod1), c("call", "adherence", "iter"))
     expect_equal(mod1[nm], mod2[nm])
     # adherence != 1 for grouped same as ungrouped with replicated adherence
     ranker_adherence <- seq(0.75, 1.25, length.out = nrow(beans))
@@ -158,7 +160,8 @@ test_that('fixed adherence works for grouped_rankings [beans]', {
     mod1 <- PlackettLuce(R, adherence = ranking_adherence)
     mod2 <- PlackettLuce(G, adherence = ranker_adherence)
     # remove bits we expect to be different
-    nm <- setdiff(names(mod1), c("call", "adherence", "ranker"))
+    # iter can be different on some platform due to small difference in rowsums
+    nm <- setdiff(names(mod1), c("call", "adherence", "ranker", "iter"))
     expect_equal(mod1[nm], mod2[nm])
     expect_equal(mod1$adherence[mod1$ranker], mod2$adherence[mod2$ranker])
 })
@@ -184,7 +187,9 @@ test_that('estimated adherence works for grouped_rankings [partial + ties]', {
                                           method = "BFGS",
                                           gamma = list(shape = 10, rate = 10)))
     # remove bits we expect to be different
-    nm <- setdiff(names(mod1), c("call", "rankings", "ranker", "weights"))
+    # iter can be different on some platform due to small difference in rowsums
+    nm <- setdiff(names(mod1),
+                  c("call", "rankings", "ranker", "weights", "iter"))
     expect_equal(mod1[nm], mod2[nm])
 })
 
