@@ -12,9 +12,3 @@
  - comparison with other packages
  - trees
  - adherence/MAP estimation
-* does adjacency add half or a third etc for a tie?
-
-## for datacamp
-
-* change grouped_rankings to group_rankings (verb) - deprecate grouped_rankings.
-

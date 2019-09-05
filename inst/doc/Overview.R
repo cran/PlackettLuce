@@ -29,7 +29,7 @@ as.matrix(data.frame(choice = c(1, 1, 1, 2, 2),
 #      # convert ordered items to ranking
 #      R <- as.rankings(dat[,-1], "ordering")
 #      # fit without adding pseudo-rankings, weight rankings by count
-#      PlackettLuce(R, npseudo = 0, weights = dat$n)
+#      PlackettLuce(R, npseudo = 0, weights = dat$Freq)
 #  }
 #  hyper2 <- function(dat, ...){
 #      requireNamespace("hyper2")
@@ -41,16 +41,16 @@ as.matrix(data.frame(choice = c(1, 1, 1, 2, 2),
 #      }
 #      # find parameters to maximise likelihood
 #      p <- hyper2::maxp(H)
-#      structure(p, loglik = hyper2::lhyper2(H, p[-length(p)]))
+#      structure(p, loglik = hyper2::loglik(H, p[-length(p)]))
 #  }
 #  plmix <- function(dat, ...){
 #      requireNamespace("PLMIX")
 #      # disaggregate data (no functionality for weights or counts)
-#      r <- rep(seq_len(nrow(dat)), dat$n)
+#      r <- rep(seq_len(nrow(dat)), dat$Freq)
 #      # maximum a posteriori estimate, with non-informative prior
 #      # K items in each ranking, single component distribution
 #      # default starting values do not always work so specify as uniform
-#      K <- ncol(dat)
+#      K <- ncol(dat) - 1
 #      PLMIX::mapPLMIX(as.matrix(dat[r, -1]), K = K, G = 1,
 #                      init = list(p = rep.int(1/K, K)), plot_objective = FALSE)
 #  }
@@ -60,14 +60,14 @@ as.matrix(data.frame(choice = c(1, 1, 1, 2, 2),
 #      R <- as.rankings(dat[,-1], "ordering")
 #      # create data frame with counts as required by pl
 #      X <- as.data.frame(unclass(R))
-#      X$n <- dat$n
+#      X$Freq <- dat$Freq
 #      capture.output(res <- pmr::pl(X))
 #      res
 #  }
 #  statrank <- function(dat, iter){
 #      requireNamespace("StatRank")
 #      # disaggregate data (no functionality for weights or counts)
-#      r <- rep(seq_len(nrow(dat)), dat$n)
+#      r <- rep(seq_len(nrow(dat)), dat$Freq)
 #      capture.output(res <- StatRank::Estimation.PL.MLE(as.matrix(dat[r, -1]),
 #                                                        iter = iter))
 #      res
@@ -93,9 +93,9 @@ as.matrix(data.frame(choice = c(1, 1, 1, 2, 2),
 
 ## ----save-timings, echo = FALSE--------------------------------------------
 if (eval_all){
-    saveRDS(netflix_timings, "netflix_timings.rds")
-    saveRDS(tshirt_timings, "tshirt_timings.rds")
-    saveRDS(sushi_timings, "sushi_timings.rds")
+    saveRDS(netflix_timings, "netflix_timings.rds", version = 2)
+    saveRDS(tshirt_timings, "tshirt_timings.rds", version = 2)
+    saveRDS(sushi_timings, "sushi_timings.rds", version = 2)
 } else {
     netflix_timings <- readRDS("netflix_timings.rds")
     tshirt_timings <- readRDS("tshirt_timings.rds")
@@ -147,7 +147,7 @@ if (extra){
 
 ## ----save-timings-sub, echo = FALSE----------------------------------------
 if (eval_all){
-    saveRDS(nascar_timings, "nascar_timings.rds")
+    saveRDS(nascar_timings, "nascar_timings.rds", version = 2)
 } else {
     nascar_timings <- readRDS("nascar_timings.rds")
 }
@@ -187,20 +187,20 @@ library(PlackettLuce)
 head(pudding)
 
 ## --------------------------------------------------------------------------
-nr <- 3*nrow(pudding)
-R <- matrix(0, nrow = nr, ncol = 6,
-            dimnames = list(NULL, seq_len(6)))
-i <- rep(pudding$i, 3)
-j <- rep(pudding$j, 3)
-R[cbind(seq_len(nr), i)] <- rep(c(1, 2, 1), each = nrow(pudding))
-R[cbind(seq_len(nr), j)] <- rep(c(2, 1, 1), each = nrow(pudding))
-head(R, 3)
-tail(R, 3)
+i_wins <- data.frame(Winner = pudding$i, Loser = pudding$j)
+j_wins <- data.frame(Winner = pudding$j, Loser = pudding$i)
+ties <- data.frame(Winner = asplit(pudding[, c("i", "j")], 1),
+                   Loser = rep(NA, 15))
+head(ties, 2)
 
 ## --------------------------------------------------------------------------
-R <- as.rankings(R)
-head(R)
-tail(R)
+R <- as.rankings(rbind(i_wins, j_wins, ties),
+                 input = "orderings")
+head(R, 2)
+tail(R, 2)
+
+## --------------------------------------------------------------------------
+head(unclass(R), 2)
 
 ## --------------------------------------------------------------------------
 w <- unlist(pudding[c("w_ij", "w_ji", "t_ij")])
@@ -255,16 +255,11 @@ coef(mod2)
 
 ## --------------------------------------------------------------------------
 data(nascar)
-nascar[1:2, 1:45]
+nascar[1:2, ]
 
 ## --------------------------------------------------------------------------
-R <- as.rankings(nascar, input = "ordering")
-R[1:2,]
-
-## --------------------------------------------------------------------------
-colnames(R) <- attr(nascar, "drivers")
-R[1:3, 1:3, as.rankings = FALSE]
-R[1:3]
+R <- as.rankings(nascar, input = "orderings", items = attr(nascar, "drivers"))
+R[1:2]
 
 ## --------------------------------------------------------------------------
 keep <- seq_len(83)
@@ -301,7 +296,8 @@ axis(1, at = seq_len(87), labels = rownames(qv$qvframe), las = 2, cex.axis = 0.7
 example("beans", package = "PlackettLuce")
 
 ## --------------------------------------------------------------------------
-G <- grouped_rankings(R, rep(seq_len(nrow(beans)), 4))
+n <- nrow(beans)
+G <- group(R, index = rep(seq_len(n), 4))
 format(head(G, 2), width = 50)
 
 ## ----pltree, eval = eval_all-----------------------------------------------
@@ -312,7 +308,7 @@ format(head(G, 2), width = 50)
 
 ## ----save-tree, echo = FALSE-----------------------------------------------
 if (eval_all){
-    saveRDS(tree, "pltree.rds")
+    saveRDS(tree, "pltree.rds", version = 2)
 } else {
     tree <- readRDS("pltree.rds")
 }
@@ -337,7 +333,7 @@ plot(tree, names = FALSE, abbreviate = 2)
 #      # convert ordered items to ranking
 #      R <- as.rankings(dat[,-1], "ordering")
 #      # fit without adding pseudo-rankings, weight rankings by count
-#      PlackettLuce(R, npseudo = 0, weights = dat$n)
+#      PlackettLuce(R, npseudo = 0, weights = dat$Freq)
 #  }
 #  hyper2 <- function(dat, ...){
 #      requireNamespace("hyper2")
@@ -349,16 +345,16 @@ plot(tree, names = FALSE, abbreviate = 2)
 #      }
 #      # find parameters to maximise likelihood
 #      p <- hyper2::maxp(H)
-#      structure(p, loglik = hyper2::lhyper2(H, p[-length(p)]))
+#      structure(p, loglik = hyper2::loglik(H, p[-length(p)]))
 #  }
 #  plmix <- function(dat, ...){
 #      requireNamespace("PLMIX")
 #      # disaggregate data (no functionality for weights or counts)
-#      r <- rep(seq_len(nrow(dat)), dat$n)
+#      r <- rep(seq_len(nrow(dat)), dat$Freq)
 #      # maximum a posteriori estimate, with non-informative prior
 #      # K items in each ranking, single component distribution
 #      # default starting values do not always work so specify as uniform
-#      K <- ncol(dat)
+#      K <- ncol(dat) - 1
 #      PLMIX::mapPLMIX(as.matrix(dat[r, -1]), K = K, G = 1,
 #                      init = list(p = rep.int(1/K, K)), plot_objective = FALSE)
 #  }
@@ -368,14 +364,14 @@ plot(tree, names = FALSE, abbreviate = 2)
 #      R <- as.rankings(dat[,-1], "ordering")
 #      # create data frame with counts as required by pl
 #      X <- as.data.frame(unclass(R))
-#      X$n <- dat$n
+#      X$Freq <- dat$Freq
 #      capture.output(res <- pmr::pl(X))
 #      res
 #  }
 #  statrank <- function(dat, iter){
 #      requireNamespace("StatRank")
 #      # disaggregate data (no functionality for weights or counts)
-#      r <- rep(seq_len(nrow(dat)), dat$n)
+#      r <- rep(seq_len(nrow(dat)), dat$Freq)
 #      capture.output(res <- StatRank::Estimation.PL.MLE(as.matrix(dat[r, -1]),
 #                                                        iter = iter))
 #      res
@@ -406,51 +402,36 @@ data(beans)
 head(beans[c("best", "worst")], 2)
 
 ## ----beans-2---------------------------------------------------------------
-beans <- within(beans, {
-    best <- match(best, c("A", "B", "C"))
-    worst <- match(worst, c("A", "B", "C"))
-    middle <- 6 - best - worst
-})
+beans$middle <- complete(beans[c("best", "worst")],
+                         items = c("A", "B", "C"))
 head(beans[c("best", "middle", "worst")], 2)
 
 ## ----beans-3---------------------------------------------------------------
-varieties <- as.matrix(beans[c("variety_a", "variety_b", "variety_c")])
-head(varieties, 2)
+head(beans[c("variety_a", "variety_b", "variety_c")], 2)
 
 ## ----beans-4---------------------------------------------------------------
-n <- nrow(beans)
-beans <- within(beans, {
-    best <- varieties[cbind(seq_len(n), best)]
-    worst <- varieties[cbind(seq_len(n), worst)]
-    middle <- varieties[cbind(seq_len(n), middle)]
-})
-head(beans[c("best", "middle", "worst")], 2)
-
-## ----beans-5---------------------------------------------------------------
-lab <- c("Local", sort(unique(as.vector(varieties))))
-R <- as.rankings(beans[c("best", "middle", "worst")],
-                 input = "ordering", labels = lab)
-head(R)
+order3 <- decode(beans[c("best", "middle", "worst")],
+                 items = beans[c("variety_a", "variety_b", "variety_c")],
+                 code = c("A", "B", "C"))
 
 ## ----beans-6---------------------------------------------------------------
 head(beans[c("var_a", "var_b", "var_c")], 2)
 
 ## ----beans-7---------------------------------------------------------------
-paired <- list()
-for (id in c("a", "b", "c")){
-    ordering <- matrix("Local", nrow = n, ncol = 2)
-    worse <- beans[[paste0("var_", id)]] == "Worse"
-    ## put trial variety in column 1 when it is not worse than local
-    ordering[!worse, 1] <- beans[[paste0("variety_", id)]][!worse]
-    ## put trial variety in column 2 when it is worse than local
-    ordering[worse, 2] <- beans[[paste0("variety_", id)]][worse]
-    paired[[id]] <- ordering
-}
-head(paired[["a"]])
+trial_variety <- unlist(beans[c("variety_a", "variety_b", "variety_c")])
+outcome <- unlist(beans[c("var_a", "var_b", "var_c")])
+
+## --------------------------------------------------------------------------
+order2 <- data.frame(Winner = ifelse(outcome == "Worse",
+                                     "Local", trial_variety),
+                     Loser = ifelse(outcome == "Worse",
+                                    trial_variety, "Local"),
+                     stringsAsFactors = FALSE, row.names = NULL)
+head(order2, 2)
 
 ## ----beans-8---------------------------------------------------------------
-paired <- lapply(paired, as.rankings, input = "ordering", labels = lab)
-R <- rbind(R, paired[["a"]], paired[["b"]], paired[["c"]])
+R <- rbind(as.rankings(order3, input = "ordering"),
+           as.rankings(order2, input = "ordering"))
 head(R)
 tail(R)
 

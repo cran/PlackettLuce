@@ -81,9 +81,9 @@ netflix <- read.soc(file.path(preflib, "netflix/ED-00004-00000138.soc"))
 head(netflix, 2)
 ```
 
-    ##    n Rank 1 Rank 2 Rank 3 Rank 4
-    ## 1 68      2      1      4      3
-    ## 2 53      1      2      4      3
+    ##   Freq Rank 1 Rank 2 Rank 3 Rank 4
+    ## 1   68      2      1      4      3
+    ## 2   53      1      2      4      3
 
 Each row corresponds to a unique ordering of the four movies in this
 data set. The number of Netflix users that assigned that ordering is
@@ -98,8 +98,8 @@ item, rather than ordering the items. We can create a `"rankings"`
 object from a set of orderings as follows
 
 ``` r
-R <- as.rankings(netflix[,-1], input = "ordering")
-colnames(R) <- attr(netflix, "item")
+R <- as.rankings(netflix[,-1], input = "orderings",
+                 items = attr(netflix, "items"))
 R[1:3, as.rankings = FALSE]
 ```
 
@@ -108,7 +108,7 @@ R[1:3, as.rankings = FALSE]
     ## 2          1                 2                 4                      3
     ## 3          2                 1                 3                      4
 
-Note that `read.soc` saved the names of the movies in the `"item"`
+Note that `read.soc` saved the names of the movies in the `"items"`
 attribute of `netflix`, so we have used these to label the items.
 Subsetting the rankings object `R` with `as.rankings = FALSE`, returns
 the underlying matrix of rankings corresponding to the subset. So for
@@ -149,7 +149,7 @@ Plackett-Luce model. The counts of each ranking provided in the
 downloaded data are used as weights when fitting the model.
 
 ``` r
-mod <- PlackettLuce(R, weights = netflix$n)
+mod <- PlackettLuce(R, weights = netflix$Freq)
 coef(mod, log = FALSE)
 ```
 
@@ -170,7 +170,7 @@ are estimable:
 summary(mod)
 ```
 
-    ## Call: PlackettLuce(rankings = R, weights = netflix$n)
+    ## Call: PlackettLuce(rankings = R, weights = netflix$Freq)
     ## 
     ## Coefficients:
     ##                        Estimate Std. Error z value Pr(>|z|)    
@@ -209,7 +209,7 @@ difference in users’ preference for these last two movies.
 
 ## Going Further
 
-The full functionality of **PlackettLuce** is illustrated in the package
+The core functionality of **PlackettLuce** is illustrated in the package
 vignette, along with details of the model used in the package and a
 comparison to other packages. The vignette can be found on the [package
 website](https://hturner.github.io/PlackettLuce/) or from within R once
@@ -220,8 +220,8 @@ the package has been installed, e.g. via
 ## Code of Conduct
 
 Please note that this project is released with a [Contributor Code of
-Conduct](CONDUCT.md). By participating in this project you agree to
-abide by its terms.
+Conduct](https://github.com/hturner/PlackettLuce/blob/master/CONDUCT.md).
+By participating in this project you agree to abide by its terms.
 
 ## References
 
