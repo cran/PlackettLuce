@@ -2,7 +2,7 @@
 #'
 #' Fit a Plackett-Luce model to a set of rankings. The rankings may be partial
 #' (each ranking completely ranks a subset of the items) and include ties of
-#' any order.
+#' arbitrary order.
 #'
 #' @section Model definition:
 #'
@@ -163,6 +163,18 @@
 #' \code{\link{pudding}}, \code{\link{preflib}}.
 #'
 #' Vignette: \code{vignette("Overview", package = "PlackettLuce")}.
+#'
+#' @note As the maximum tie order increases, the number of possible choices for
+#' each rank increases rapidly, particularly when the total number of items is
+#' high. This means that the model will be slower to fit with higher \eqn{D}.
+#' In addition, due to the current implementation of the `vcov()` method,
+#' computation of the standard errors (as by `summary()`) can take almost as
+#' long as the model fit and may even become infeasible due to memory limits.
+#' As a rule of thumb, for > 10 items and > 1000 rankings, we recommend
+#' `PlackettLuce()` for ties up to order 4. For higher order ties, a
+#' rank-ordered logit model, see [ROlogit::rologit()] or
+#' generalized Mallows Model as in [BayesMallows::compute_mallows()] may be
+#' more suitable, as they do not model tied events explicitly.
 #'
 #' @param rankings a \code{"\link{rankings}"} object, or an object that can be
 #' coerced by \code{as.rankings}.  An [`"aggregated_rankings"`][aggregate()]
@@ -539,6 +551,8 @@ PlackettLuce <- function(rankings,
         W[[2L]] <- c(W[[2L]], rep.int(2L*npseudo, N))
         # update indices
         G[[2L]] <- c(G[[2L]], (nr + 1L):(nr + N))
+        # add set size of 2 to observed set sizes, if necessary
+        P <- unique(c(2L, P))
         # update A: npseudo wins for item N + 1 against each other item;
         # npseudo wins for other items
         A <- c(A + npseudo, N*npseudo)
@@ -609,6 +623,7 @@ PlackettLuce <- function(rankings,
     }
 
     if (method == "L-BFGS"){
+        if (trace) message("No trace implemented for L-BFGS")
         opt <- function(par, obj, gr, ...){
             lbfgs::lbfgs(obj, gr, par, invisible = 1L,
                          max_iterations = maxit[1L], ...)
@@ -779,8 +794,8 @@ PlackettLuce <- function(rankings,
                 } else res <- res2
             }
         }
+        if (trace) message("iter ", iter, ", loglik: ", res$logl)
     }
-    if (trace) message("iter ", iter, ", loglik: ", res$logl)
     if (conv[1L] == 1L) warning("Iterations have not converged.")
 
     res$delta <- structure(res$delta, names = paste0("tie", 1L:D))[-1L]

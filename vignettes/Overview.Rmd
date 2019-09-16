@@ -239,7 +239,7 @@ if (eval_all){
 }
 ```
 
-(ref:features) Features of example data sets from PrefLib [@Mattei2013]
+(ref:features) Features of example data sets from PrefLib [@Mattei2013]. The Netflix data are from [@Bennett2007].
 
 ```{r data-features, echo = FALSE}
 features <- cbind(c(1256, 30, 5000),
@@ -406,8 +406,6 @@ first place is not a 3-way or higher tie.  Specifically, that probability is $\d
 The 3-way and higher tie-prevalence parameters are interpretable similarly, in terms of
 tie probabilities among equal-worth items.
 
-[//]: # (Do we need/want to give the full detail there?  It gets a bit complicated.  I guess we'll need that for version to submit for publication, though.  DF)
-
 ### Pudding example (with ties)
 
 When each ranking contains only two items, then the model in Equation
@@ -415,7 +413,7 @@ When each ranking contains only two items, then the model in Equation
 @Davidson1970 for paired comparisons with ties. The `pudding` data set,
 available in **PlackettLuce**, provides the data from Example 2 of that paper, in
 which respondents were asked to test two brands of chocolate pudding from a
-total of six brands. For each comparison of brands $i$ and $j$, the data set
+total of six brands. For each pair of brands $i$ and $j$, the data set
 gives the frequencies that brand $i$ was preferred ($w_{ij}$), that brand $j$
 was preferred ($w_{ji}$) and that the brands were tied ($t_{ij}$).
 
@@ -432,13 +430,19 @@ corresponding to the wins for item $i$, the wins for item $j$ and the ties:
 ```{r}
 i_wins <- data.frame(Winner = pudding$i, Loser = pudding$j)
 j_wins <- data.frame(Winner = pudding$j, Loser = pudding$i)
-ties <- data.frame(Winner = asplit(pudding[, c("i", "j")], 1),
-                   Loser = rep(NA, 15))
+if (getRversion() < "3.6.0"){
+  n <- nrow(pudding)
+  ties <- data.frame(Winner = array(split(pudding[c("i", "j")], 1:n), n),
+                     Loser = rep(NA, 15))
+} else {
+  ties <- data.frame(Winner = asplit(pudding[c("i", "j")], 1),
+                     Loser = rep(NA, 15))
+}
 head(ties, 2)
 ```
-In the last case, the base R function `asplit` is used to split the `i` and `j` 
-columns of `pudding` by row, giving a vector of items that we can specify as 
-the winner, while the loser is missing.
+In the last case, we split the `i` and `j` columns of `pudding` by row, using 
+the base R function `asplit`, if available. For each pair, this gives a vector 
+of items that we can specify as the winner, while the loser is missing.
 
 Now the `as.rankings()` function from **PlackettLuce** can be used to convert 
 the combined orderings to an object of class `"rankings"`.
@@ -460,11 +464,6 @@ head(unclass(R), 2)
 The six columns represent the pudding brands. In each row, `0` represents an
 unranked brand (not in the comparison), `1` represents the brand(s) ranked
 in first place and `2` represents the brand in second place, if applicable.
-
-[//]: # (The `as.rankings` method checks that the rankings are specified as dense
-rankings, i.e. consecutive integers with no rank skipped for tied items,
-recoding as necessary; drops rankings with less than two items since these are
-uninformative, and adds column names if necessary.)
 
 To specify the full set of rankings, we need the frequency of each ranking,
 which will be specified to the model-fitting function as a weight vector:
@@ -709,8 +708,9 @@ comparison:
 ```{r nascar-qv, fig.cap = "Ability of drivers based on NASCAR 2002 season. Intervals based on quasi-standard errors.", fig.wide = TRUE}
 qv <- qvcalc(mod2)
 qv$qvframe <- qv$qvframe[order(coef(mod2)),]
-plot(qv, xlab = NULL, ylab = "Ability (log)", main = NULL, xaxt="n")
-axis(1, at = seq_len(87), labels = rownames(qv$qvframe), las = 2, cex.axis = 0.7)
+plot(qv, xlab = NULL, ylab = "Ability (log)", main = NULL,
+     xaxt="n", xlim = c(3, 85))
+axis(1, at = seq_len(87), labels = rownames(qv$qvframe), las = 2, cex.axis = 0.6)
 ```
 
 As in the previous example, we can use `summary(qv)` to see a report on the

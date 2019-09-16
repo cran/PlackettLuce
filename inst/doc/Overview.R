@@ -189,8 +189,14 @@ head(pudding)
 ## --------------------------------------------------------------------------
 i_wins <- data.frame(Winner = pudding$i, Loser = pudding$j)
 j_wins <- data.frame(Winner = pudding$j, Loser = pudding$i)
-ties <- data.frame(Winner = asplit(pudding[, c("i", "j")], 1),
-                   Loser = rep(NA, 15))
+if (getRversion() < "3.6.0"){
+  n <- nrow(pudding)
+  ties <- data.frame(Winner = array(split(pudding[c("i", "j")], 1:n), n),
+                     Loser = rep(NA, 15))
+} else {
+  ties <- data.frame(Winner = asplit(pudding[c("i", "j")], 1),
+                     Loser = rep(NA, 15))
+}
 head(ties, 2)
 
 ## --------------------------------------------------------------------------
@@ -289,8 +295,9 @@ coef(summary(mod2))[84:87,]
 ## ----nascar-qv, fig.cap = "Ability of drivers based on NASCAR 2002 season. Intervals based on quasi-standard errors.", fig.wide = TRUE----
 qv <- qvcalc(mod2)
 qv$qvframe <- qv$qvframe[order(coef(mod2)),]
-plot(qv, xlab = NULL, ylab = "Ability (log)", main = NULL, xaxt="n")
-axis(1, at = seq_len(87), labels = rownames(qv$qvframe), las = 2, cex.axis = 0.7)
+plot(qv, xlab = NULL, ylab = "Ability (log)", main = NULL,
+     xaxt="n", xlim = c(3, 85))
+axis(1, at = seq_len(87), labels = rownames(qv$qvframe), las = 2, cex.axis = 0.6)
 
 ## ----beans-preparation, results = "hide"-----------------------------------
 example("beans", package = "PlackettLuce")

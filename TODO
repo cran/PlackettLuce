@@ -6,9 +6,23 @@
 * is it necessary to compute X when you have starting values already?
 * `A[item] <- unname` where are the names comming from
  - can I do reorder = FALSE (and not sort item's earlier?)
-* use better settings for plot of pltree in vignette?
 * split up vignette now arxiv article published
  - basic introduction
  - comparison with other packages
  - trees
  - adherence/MAP estimation
+* check it works when missing observed ties of given order, e.g. observe ties order 3 but none of order 2
+
+We have not investigated this question in depth, because we
+have only recently come across data sets with ties of order greater than 2 in
+practice. Often these data sets are derived from ratings, which are not
+currently supported by PlackettLuce in general. This is because a rating scale
+of r values implies free choices only for the first (r - 1) ranks, while
+PlackettLuce assumes all ranks are free choices unless there is only 1 item.
+Supporting ratings data is a
+
+We have not investigated the practical support for higher order ties in depth,
+since most partial rankings data we have come across in practice has ties of
+low order. Ties of higher order can occur in rankings derived from ratings,
+however this is a topic of future work, since it requires special treatment
+(items are tied bottom due to the limited rating scale, not by free choice).

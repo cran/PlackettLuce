@@ -14,10 +14,11 @@ R <- matrix(c(1, 2, 0, 0,
 colnames(R) <- c("apple", "banana", "orange", "pear")
 R <- as.rankings(R)
 
+# standard Plackett-Luce model
+noprior <- PlackettLuce(rankings = R, npseudo = 0)
+
 if (require("gnm")) {
     test_that("vcov.PlackettLuce matches vcov.gnm [partial + ties]", {
-        # standard Plackett-Luce model
-        noprior <- PlackettLuce(rankings = R, npseudo = 0)
         dat <- poisson_rankings(R, aggregate = FALSE)
         dat$X <- as.matrix(dat$X)
         n <- nrow(dat$X)
@@ -50,6 +51,11 @@ if (require("gnm")) {
                      check.attributes = FALSE, tol = 1e-11)
     })
 }
+
+test_that("qvcalc.PlackettLuce works with different ref [partial + ties]", {
+    expect_equal(qvcalc(noprior)$qvframe[c("quasiSE", "quasiVar")],
+                 qvcalc(noprior, ref = NULL)$qvframe[c("quasiSE", "quasiVar")])
+})
 
 test_that("vcov.PlackettLuce matches vcov_hessian [normal prior]", {
     # non-informative prior
@@ -140,4 +146,46 @@ test_that("vcov.PlackettLuce works, grouped rankings [normal + gamma prior]", {
     expect_equal(vcov(gamma_prior, type = "observed"),
                  vcov_hessian(gamma_prior),
                  check.attributes = FALSE, tol = 1e-6)
+})
+
+test_that("vcov.PlackettLuce works w/ different ref [pudding]", {
+    # create orderings for each set of paired comparisons
+    i_wins <- data.frame(Winner = pudding$i, Loser = pudding$j)
+    j_wins <- data.frame(Winner = pudding$j, Loser = pudding$i)
+    if (getRversion() < "3.6.0"){
+        n <- nrow(pudding)
+        ties <- data.frame(Winner = array(split(pudding[c("i", "j")], 1:n), n),
+                           Loser = rep(NA, 15))
+    } else {
+        ties <- data.frame(Winner = asplit(pudding[c("i", "j")], 1),
+                           Loser = rep(NA, 15))
+    }
+    # convert to rankings
+    R <- as.rankings(rbind(i_wins, j_wins, ties),
+                     input = "orderings")
+    # define weights as frequencies of each ranking
+    w <- unlist(pudding[c("w_ij", "w_ji", "t_ij")])
+    # fit Plackett-Luce model: limit iterations to match Davidson 1970
+    expect_warning(mod <- PlackettLuce(R, npseudo = 0, weights = w,
+                                       maxit = 7),
+                   "Iterations have not converged.")
+    V <- vcov(mod)
+
+    # different ref id
+    D <- diag(nrow(V))
+    D[1:6, 2] <- D[1:6, 2] - 1
+    expect_equal(vcov(mod, ref = 2), D %*% V %*% t(D),
+                 check.attributes = FALSE)
+
+    # mean of multiple items
+    D <- diag(nrow(V))
+    D[1:6, 2:3] <- D[1:6, 2:3] - 1/2
+    expect_equal(vcov(mod, ref = 2:3), D %*% V %*% t(D),
+                 check.attributes = FALSE)
+
+    # mean of all items
+    D <- diag(nrow(V))
+    D[1:6, 1:6] <- D[1:6, 1:6] - 1/6
+    expect_equal(vcov(mod, ref = NULL), D %*% V %*% t(D),
+                 check.attributes = FALSE)
 })
