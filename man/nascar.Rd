@@ -4,10 +4,12 @@
 \name{nascar}
 \alias{nascar}
 \title{Results from 2002 NASCAR Season}
-\format{A matrix with 36 rows corresponding to the races and 43 columns
+\format{
+A matrix with 36 rows corresponding to the races and 43 columns
 corresponding to the positions. The columns contain the ID for the driver
 that came first to last place respectively. The \code{"drivers"}
-attribute contains the names of the 87 drivers.}
+attribute contains the names of the 87 drivers.
+}
 \usage{
 nascar
 }
@@ -20,7 +22,8 @@ an ordering of the drivers according to their finishing position.
 
 # convert orderings to rankings
 nascar[1:2, ]
-R <- as.rankings(nascar, input = "orderings", items = attr(nascar, "drivers"))
+R <- as.rankings(nascar, input = "orderings",
+                 items = attr(nascar, "drivers"))
 R[1:2, 1:4, as.rankings = FALSE]
 format(R[1:2], width = 60)
 

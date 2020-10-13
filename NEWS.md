@@ -1,4 +1,12 @@
-# PlackettLuce 0.2-8.9000
+# PlackettLuce 0.3.1
+
+* Fix Preflib URL.
+
+# PlackettLuce 0.3.0
+
+* Now correctly handles cases where intermediate tie orders are not observed, fixing corresponding tie parameters to zero (#42).
+
+# PlackettLuce 0.2-9
 
 * `vcov.PlackettLuce()` works again for `ref = NULL` (bug introduced with vcov method in version 0.2-4)
 * avoid dependency on R >= 3.6.0 by providing alternatives to `asplit()`
@@ -147,7 +155,7 @@ direct maximisation of the likelihood via BFGS or L-BFGS.
 * Add `itempar` method for "PlackettLuce" objects to obtain different 
 parameterizations of the worth parameters.
 * Add `read.soc` function to read Strict Orders - Complete List (.soc) files 
-from http://www.preflib.org.
+from https://www.preflib.org.
 
 ## Changes in behaviour
 

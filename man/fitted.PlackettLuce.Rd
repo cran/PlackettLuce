@@ -5,8 +5,7 @@
 \alias{fitted.pltree}
 \title{Fitted Probabilities for PlackettLuce Objects}
 \usage{
-\method{fitted}{PlackettLuce}(object, aggregate = TRUE, free = TRUE,
-  ...)
+\method{fitted}{PlackettLuce}(object, aggregate = TRUE, free = TRUE, ...)
 
 \method{fitted}{pltree}(object, aggregate = TRUE, free = TRUE, ...)
 }
@@ -31,8 +30,8 @@ A list with the following components
 choice (equal to the ranking weight if \code{aggregate = FALSE}.}
 \item{fitted}{The fitted probability of making this choice.}
 If \code{object} was a \code{"pltree"} object, the list has an
-additional element, \code{node}, specifying which node the ranking corresponds
-to.
+additional element, \code{node}, specifying which node the ranking
+corresponds to.
 }
 \description{
 Fitted probabilities for all choice/alternative combinations in the data.

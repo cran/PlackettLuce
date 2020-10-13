@@ -16,10 +16,10 @@
 #' \deqn{f(S) = \delta_{|S|}
 #'       \left(\prod_{i \in S} \alpha_i \right)^\frac{1}{|S|}}{
 #'       f(S) = delta_{|S|} * (prod_{i in S} alpha_i)^(1/|S|)}
-#' where \eqn{|S|} is the cardinality (size) of the set, \eqn{\delta_n}{delta_n} is a
-#' parameter related to the prevalence of ties of order \eqn{n}
-#' (with \eqn{\delta_1 \equiv 1}), and
-#' \eqn{\alpha_i}{alpha_i} is a parameter representing the worth of item \eqn{i}.
+#' where \eqn{|S|} is the cardinality (size) of the set, \eqn{\delta_n}{delta_n}
+#' is a parameter related to the prevalence of ties of order \eqn{n}
+#' (with \eqn{\delta_1 \equiv 1}), and \eqn{\alpha_i}{alpha_i} is a
+#' parameter representing the worth of item \eqn{i}.
 #' Then under an extension of the Plackett-Luce model allowing ties up to order
 #' \eqn{D}, the probability of the ranking \eqn{R} is given by
 #' \deqn{\prod_{j = 1}^J \frac{f(C_j)}{
@@ -30,8 +30,8 @@
 #' alternatives from which \eqn{C_j} is chosen, and
 #' \eqn{A_j \choose k}{choose(A_j, k)} is all the possible choices of \eqn{k}
 #' items from \eqn{A_j}. The value of \eqn{D} can be set to the maximum number
-#' of tied items observed in the data, so that \eqn{\delta_n = 0}{delta_n = 0} for
-#' \eqn{n > D}.
+#' of tied items observed in the data, so that \eqn{\delta_n = 0}{delta_n = 0}
+#' for \eqn{n > D}.
 #'
 #' When the worth parameters are constrained to sum to one, they represent the
 #' probability that the corresponding item comes first in a ranking of all
@@ -45,6 +45,11 @@
 #'
 #' The 3-way and higher tie-prevalence parameters are similarly interpretable,
 #' in terms of tie probabilities among equal-worth items.
+#'
+#' When intermediate tie orders are not observed (e.g. ties of order 2
+#' and order 4 are observed, but no ties of order 3), the maximum
+#' likelihood estimate of the corresponding tie prevalence parameters
+#' is zero, so these parameters are excluded from the model.
 #'
 #' @section Pseudo-rankings:
 #'
@@ -71,12 +76,12 @@
 #'
 #' Prior information can be incorporated by using \code{normal} to specify a
 #' multivariate normal prior on the \emph{log}-worths. The log-worths are then
-#' estimated by maximum a posteriori (MAP) estimation. Model summaries (deviance, AIC,
-#' standard errors) are based on the log-likelihood evaluated at the MAP
-#' estimates, resulting in a finite sample bias that should disappear as
-#' the number of rankings increases. Inference based on these model summaries
-#' is valid as long as the prior is considered fixed and not tuned as part of
-#' the model.
+#' estimated by maximum a posteriori (MAP) estimation. Model summaries
+#' (deviance, AIC, standard errors) are based on the log-likelihood evaluated
+#' at the MAP estimates, resulting in a finite sample bias that should
+#' disappear as the number of rankings increases. Inference based on these
+#' model summaries is valid as long as the prior is considered fixed and not
+#' tuned as part of the model.
 #'
 #' Incorporating a prior is an alternative method of penalization, therefore
 #' \code{npseudo} is set to zero when a prior is specified.
@@ -89,12 +94,13 @@
 #' \deqn{h(S) = \delta_{|S|}
 #'       \left(\prod_{i \in S} \alpha_i \right)^\frac{\eta_g}{|S|}}{
 #'       h(S) = delta_{|S|} * (prod_{i in S} alpha_i)^(eta_g/|S|)}
-#' where \eqn{\eta_g > 0}{eta_g > 0} is the adherence parameter for ranker \eqn{g}. In
-#' the standard model, all rankers are assumed to have equal reliability, so
-#' \eqn{\eta_g = 1}{eta_g = 1} for all rankers. Higher \eqn{\eta_g = 1}{eta_g = 1}
-#' increases the distance between item worths, giving greater weight
-#' to the ranker's choice. Conversely, lower \eqn{\eta_g = 1}{eta_g = 1} shrinks
-#' the item worths towards equality so the ranker's choice is less relevant.
+#' where \eqn{\eta_g > 0}{eta_g > 0} is the adherence parameter for ranker
+#' \eqn{g}. In the standard model, all rankers are assumed to have equal
+#' reliability, so \eqn{\eta_g = 1}{eta_g = 1} for all rankers.
+#' Higher \eqn{\eta_g = 1}{eta_g = 1} increases the distance between item
+#' worths, giving greater weight' to the ranker's choice. Conversely, lower
+#' \eqn{\eta_g = 1}{eta_g = 1} shrinks the item worths towards equality so the
+#' ranker's choice is less relevant.
 #'
 #' The adherence parameters are not estimable by maximum likelihood, since
 #' for given item worths the maximum likelihood estimate of adherence would be
@@ -106,9 +112,9 @@
 #' 1 and a probability of 0.99 that the adherence is between 0.37 and 2.
 #' Alternative parameters can be specified by a list with elements \code{shape}
 #' and \code{rate}. Setting scale and rate to a common value \eqn{\theta}{theta}
-#' specifies a mean of 1; \eqn{\theta \ge}{theta >=} 2 will give low prior probability
-#' to near-zero adherence; as \eqn{\theta}{theta} increases the density becomes
-#' more concentrated (and more symmetrical) about 1.
+#' specifies a mean of 1; \eqn{\theta \ge}{theta >=} 2 will give low prior
+#' probability to near-zero adherence; as \eqn{\theta}{theta} increases the
+#' density becomes more concentrated (and more symmetrical) about 1.
 #'
 #' Since the number of adherence parameters will typically be large and it is
 #' assumed the worth and tie parameters are of primary interest, the adherence
@@ -132,7 +138,7 @@
 #' method (does not use derivatives of the likelihood). From a set of starting
 #' values that are 'close enough' to the final solution, the algorithm can be
 #' accelerated using
-#' \href{https://en.wikipedia.org/wiki/Steffensen\%27s_method}{Steffensen's method}.
+#' \href{https://en.wikipedia.org/wiki/Steffensen's_method}{Steffensen's method}.
 #' \code{PlackettLuce} attempts to apply Steffensen's acceleration when all
 #' differences between the observed and expected values of the sufficient
 #' statistics are less than \code{steffensen}. This is an ad-hoc rule defining
@@ -229,8 +235,8 @@
 #' In particular the convergence tolerance may be adjusted using e.g.
 #' \code{control = list(reltol = 1e-10)}.
 #'
-#' @return An object of class \code{"PlackettLuce"}, which is a list containing the
-#' following elements:
+#' @return An object of class \code{"PlackettLuce"}, which is a list containing
+#' the following elements:
 #' \item{call}{ The matched call. }
 #' \item{coefficients}{ The model coefficients. }
 #' \item{loglik}{ The maximized log-likelihood. }
@@ -250,11 +256,12 @@
 #' \item{ranker}{ The ranker index mapping rankings to rankers (the
 #' \code{"index"} attribute of \code{rankings} if specified as a
 #' \code{"grouped_rankings"} object.)}
-#' \item{maxTied}{ The maximum number of objects observed in a tie. }
+#' \item{ties}{ The observed tie orders corresponding to the estimated tie
+#' parameters. }
 #' \item{conv}{ The convergence code: 0 for successful convergence; 1 if reached
-#' \code{maxit} (outer) iterations without convergence; 2 if Steffensen acceleration
-#' cause log-likelihood to increase; negative number if L-BFGS algorithm failed
-#' for other reason.}
+#' \code{maxit} (outer) iterations without convergence; 2 if Steffensen
+#' acceleration cause log-likelihood to increase; negative number if L-BFGS
+#' algorithm failed for other reason.}
 #' @references
 #' Raman, K. and Joachims, T. (2014)  Methods for Ordinal Peer Grading.
 #' \href{https://arxiv.org/abs/1404.3656}{arXiv:1404.3656}.
@@ -440,9 +447,10 @@ PlackettLuce <- function(rankings,
     }
     # sufficient statistics
     # for delta d, (number of sets with cardinality d)/cardinality
-    B <- unname(rowsum(ws, S)[,1L])
-    D <- length(B)
-    B <- B/seq(D)
+    d <- sort(unique(S))
+    D <- length(d)
+    B <- rowsum(ws, S)[,1L]
+    B <- B/d
     # from now only only need weight/size per set, so replace S with this
     S <- ws/S
     rm(ws)
@@ -618,7 +626,7 @@ PlackettLuce <- function(rankings,
                     c(list(par, obj, gr, method = "BFGS",
                            control = c(eval(dts$control),
                                        list(maxit = maxit[1L]))),
-                           dts[setdiff(names(dts), "control")]))
+                      dts[setdiff(names(dts), "control")]))
         }
     }
 
@@ -636,7 +644,7 @@ PlackettLuce <- function(rankings,
         delta <- exp(par[-c(1L:N)])
         # assign to parent environment so can use further quantities in score
         assign("fit", expectation("all", alpha, c(1.0, delta),
-                                  a, N, D, P, R, G, W),
+                                  a, N, d, P, R, G, W),
                envir = parent.env(environment()))
         -loglik_common(c(alpha, delta), N, normal$mu, Rinv, A, B, fit)
     }
@@ -652,7 +660,7 @@ PlackettLuce <- function(rankings,
         adherence <- exp(par)
         # assign to parent environment so can use further quantities in score
         assign("fit", normalization(alpha, c(1.0, delta),
-                                    adherence[ranker], D, P, R, G, W),
+                                    adherence[ranker], d, P, R, G, W),
                envir = parent.env(environment()))
         -loglik_adherence(adherence, gamma$shape, gamma$rate, wa, Z, fit)
     }
@@ -683,7 +691,7 @@ PlackettLuce <- function(rankings,
                 if (i > 0L) logp_old <- logp
                 # log-posterior after worth update
                 logp <- -res$value + sum(wa*((gamma$shape - 1L)*log(adherence) -
-                                             gamma$rate*adherence))
+                                                 gamma$rate*adherence))
                 if (i > 0L && abs(logp_old - logp) <=
                     epsilon * (abs(logp) + epsilon)) {
                     conv <- 0L
@@ -717,7 +725,7 @@ PlackettLuce <- function(rankings,
     } else {
         res <- list(alpha = alpha, delta = delta)
         res[c("expA", "expB", "theta")] <-
-            expectation("all", alpha, delta, a, N, D, P, R, G, W)
+            expectation("all", alpha, delta, a, N, d, P, R, G, W)
         res$logl <- sum(B[-1L]*log(res$delta)[-1L]) + sum(A*log(res$alpha)) -
             sum(res$theta)
         oneUpdate <- function(res){
@@ -728,19 +736,19 @@ PlackettLuce <- function(rankings,
             if (D > 1L) {
                 res$delta[-1L] <- B[-1L]/
                     expectation("delta", res$alpha, res$delta,
-                                a, N, D, P, R, G, W)$expB
+                                a, N, d, P, R, G, W)$expB
             }
             res[c("expA", "expB", "theta")] <-
                 expectation("all", res$alpha, res$delta,
-                            a, N, D, P, R, G, W)
+                            a, N, d, P, R, G, W)
             res$logl <- sum(B[-1L]*log(res$delta)[-1L]) +
                 sum(A*log(res$alpha)) - sum(res$theta)
             res
         }
         accelerate <- function(p, p1, p2){
             # only accelerate if parameter has changed in last iteration
-            d <- p2 != p1
-            p2[d] <- p[d] - (p1[d] - p[d])^2L / (p2[d] - 2L * p1[d] + p[d])
+            z <- p2 != p1
+            p2[z] <- p[z] - (p1[z] - p[z])^2L / (p2[z] - 2L * p1[z] + p[z])
             p2
         }
         # stopping rule: compare observed & expected sufficient stats
@@ -784,7 +792,7 @@ PlackettLuce <- function(rankings,
                         accelerate(res$delta, res1$delta, res2$delta)[-1L]
                     res[c("expA", "expB", "theta")] <-
                         expectation("all", res$alpha, res$delta,
-                                    a, N, D, P, R, G, W)
+                                    a, N, d, P, R, G, W)
                     res$logl <-
                         sum(B[-1L]*log(res$delta)[-1L]) +
                         sum(A*log(res$alpha)) - sum(res$theta)
@@ -798,7 +806,7 @@ PlackettLuce <- function(rankings,
     }
     if (conv[1L] == 1L) warning("Iterations have not converged.")
 
-    res$delta <- structure(res$delta, names = paste0("tie", 1L:D))[-1L]
+    res$delta <- structure(res$delta, names = paste0("tie", names(B)))[-1L]
 
     if (npseudo > 0L) {
         # drop hypothetical object
@@ -826,8 +834,8 @@ PlackettLuce <- function(rankings,
     # recompute log-likelihood excluding pseudo-observations/priors
     if (npseudo > 0L | !is.null(normal) | !is.null(gamma)) {
         if (!is.null(normal) & is.null(gamma)) {
-          # logp not yet assigned
-          logp <- res$logl
+            # logp not yet assigned
+            logp <- res$logl
         }
         normal <- NULL
         logl <- -obj_common(log(cf))
@@ -839,7 +847,7 @@ PlackettLuce <- function(rankings,
     # frequencies of sets selected from, for sizes 2 to max observed
     freq <- vapply(W[P], sum, 1.0)
     # number of possible selections overall
-    n <- sum(vapply(P, choose, numeric(D), k = seq(D)) %*% freq)
+    n <- sum(vapply(P, choose, numeric(D), k = d) %*% freq)
     df.residual <- n - sum(freq) - rank
 
     fit <- list(call = call,
@@ -857,10 +865,9 @@ PlackettLuce <- function(rankings,
                 weights = weights,
                 adherence = adherence,
                 ranker = ranker,
-                maxTied = D,
+                ties = d,
                 conv = conv,
                 na.action = na.action)
     class(fit) <- "PlackettLuce"
     fit
 }
-

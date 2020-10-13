@@ -40,7 +40,7 @@ corresponding to each item number.
 \description{
 Read orderings from \code{.soc}, \code{.soi}, \code{.toc} or \code{.toi} file types storing
 election data as defined by
-\href{http://www.preflib.org/}{{PrefLib}: A Library for Preferences}.
+\href{https://www.preflib.org/}{\{PrefLib\}: A Library for Preferences}.
 }
 \details{
 The file types supported are
@@ -63,7 +63,7 @@ by the item names.
 
 A Preflib file may be corrupt, in the sense that the ordered items do not
 match the named items. In this case, the file can be read is as a data
-frame (with a warning) using the corresponding \code{read.*} function, but
+frame (with a warning) using the corresponding \verb{read.*} function, but
 \code{as.aggregated_rankings} will throw an error.
 }
 \note{
@@ -77,7 +77,7 @@ data sets require a citation for re-use.
 
 \dontrun{
 # url for preflib data in the "Election Data" category
-preflib <- "http://www.preflib.org/data/election/"
+preflib <- "https://www.preflib.org/data/election/"
 
 # strict complete orderings of four films on Netflix
 netflix <- read.soc(file.path(preflib, "netflix/ED-00004-00000101.soc"))
