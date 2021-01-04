@@ -1,3 +1,8 @@
+# PlackettLuce 0.3.2
+
+* Fix test that fails with new behaviour of `all.equal()`.
+* Update citation to use Computational Statistics paper (#44).
+
 # PlackettLuce 0.3.1
 
 * Fix Preflib URL.

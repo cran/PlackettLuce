@@ -1,6 +1,6 @@
-284600424e662f0a91f73dda7a54542a *DESCRIPTION
+b04fa794540ed4d7a24ccc3aa459a3c9 *DESCRIPTION
 ef38dad71b890bc93ce42e920b5ed1bf *NAMESPACE
-f26533047ceb2a1c81c64c26d5618538 *NEWS.md
+61572f7db3d541789d291620c526b41c *NEWS.md
 26659444271a1aaa652a565986de5096 *R/PlackettLuce-deprecated.R
 8ac55709ed946147f7aec4024e93408d *R/PlackettLuce-package.R
 157d68ecc2dd411b6a920c218e7a0a21 *R/PlackettLuce.R
@@ -32,10 +32,11 @@ db46e89d4cb230350d3c1564bcd6f060 *R/pltree-summaries.R
 f301034b1afb0d969a9c3e96bc1650f9 *R/utility.R
 6407f2a1de6b678d1fc0170fb6065cff *R/vcov.R
 954fd9a35cc4f4a1a6fc25391e17332d *README.md
-9dccbb8a05b57173811c8a9613b0b090 *build/vignette.rds
+b732df298346e02d12b428ab3e188bb4 *build/vignette.rds
 33aa7d4265e361c6f89f6e55ec3b3959 *data/beans.rda
 45e851c413ac320d153545fe73c51548 *data/nascar.rda
 5672de67c079e52d6db5b959a0d8bd7c *data/pudding.rda
+f6f7da17204309ce3a3c07e29c306e5c *inst/CITATION
 979a20c0a248b5d0b7dcd4d0b14cc3a7 *inst/PlackettLuce0/PlackettLuce0.R
 b2dd4501e79145634a2074d6bc7811fb *inst/PlackettLuce0/coef0.R
 8b2f54d0b016e50e823ec216101f9b1d *inst/PlackettLuce0/fitted0.R
@@ -52,7 +53,7 @@ e97b83488898efcd31a23f64dd51a19b *inst/Reference_Implementations/sgdPL.R
 15b8109aa7b2a131403b767d9b88fcbf *inst/WORDLIST
 d2d0421a03c6f63e036e4c7b6db974f3 *inst/doc/Overview.R
 dc1c37811a967360dd44a7f213399ff2 *inst/doc/Overview.Rmd
-b251a8c9751103fd25e2f501fa0964ae *inst/doc/Overview.html
+9394f5a3ed60bdc1efe8e2af9b4f4daf *inst/doc/Overview.html
 bf1e3b594ce91c7b0391fb209c3e01f9 *inst/extdata/education_courses.toi
 777b5fff944d636b573dd71964afad96 *inst/extdata/education_qualities.toi
 10d56e53a9bf47bcae4dfaf57d9766c5 *inst/extdata/f1.soi
@@ -92,7 +93,7 @@ d9140a1d650ef0953cd93b77f8d8e1be *tests/testthat/outputs/fitted.rds
 42d7899a365a26aeff2cfac4fe7cb99c *tests/testthat/outputs/fitted_all.rds
 bf14b12f233e516d76b5068b03b49e9b *tests/testthat/outputs/fitted_individual.rds
 120dbb8c58ea19fafe1bf0bfad2ed405 *tests/testthat/outputs/pl_adherence_pseudo.rds
-77a509157cb5c205cd219d778acd1d7c *tests/testthat/outputs/pltree_adherence_beans.rds
+4899fc959fd66fccd5218449c95cf389 *tests/testthat/outputs/pltree_adherence_beans.rds
 5557fc0c3f72a428e70bb848cc0f403f *tests/testthat/outputs/print.coef.rds
 7754ba84db23d39ad3bf8c7604bcdee8 *tests/testthat/outputs/print.rds
 14c5f9c57458fbffab0d8e1dbe7cc038 *tests/testthat/outputs/print.summary.rds
@@ -114,7 +115,7 @@ ecc5297518d4435fce22600e8faf65b4 *tests/testthat/test-algorithms.R
 0fa03c75082b8f36c3ae75c9ac18bb38 *tests/testthat/test-networks.R
 3ec432549a2fad530c842ffb7a816969 *tests/testthat/test-preflib.R
 3d601d680c5beb424be7e68965c61650 *tests/testthat/test-pseudo.R
-1ffd23d47983dd7b4b706191fccdf508 *tests/testthat/test-psycho.R
+602342dbd7c31684174eb3f2d99e7071 *tests/testthat/test-psycho.R
 48bc68ebd9d16040c254244e5e2e96de *tests/testthat/test-rankings.R
 a01be6f54024bd50175d47b1ca42d0f7 *tests/testthat/test-reference.R
 83f44466cf137191f1bcd71fb834ae93 *tests/testthat/test-simulate.R
@@ -128,6 +129,6 @@ c15780e5f0b1656c18e562d3e0fd91b7 *vignettes/nascar_timings.rds
 5d5e6f8f863381c784b1223d4dd0887c *vignettes/netflix_timings.rds
 cbc2f6874e0749e51b61ca315d172278 *vignettes/plackettluce.bib
 623ce414d58617e06d81643b663e2995 *vignettes/pltree.rds
-7a8e0abc7305bb52f299276a2b62ed2f *vignettes/render.R
+33d0b28418ef4aee77283788b54ab717 *vignettes/render.R
 12cb19c259546608e4fcadb4bf557b0b *vignettes/sushi_timings.rds
 e0235077ec5bd4f5b957f5b19625d1a6 *vignettes/tshirt_timings.rds
