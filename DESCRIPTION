@@ -1,7 +1,7 @@
 Package: PlackettLuce
 Type: Package
 Title: Plackett-Luce Models for Rankings
-Version: 0.3.2
+Version: 0.4.0
 Authors@R: c(person("Heather", "Turner",
         email = "ht@heatherturner.net", role = c("aut", "cre"),
         comment = c(ORCID = "0000-0002-1256-3375")),
@@ -31,20 +31,20 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 2.10)
-Imports: Matrix, igraph, methods, partykit, psychotools, psychotree,
-        RSpectra, qvcalc, sandwich, stats
+Imports: CVXR, Matrix, igraph, methods, partykit, psychotools,
+        psychotree, R6, RSpectra, qvcalc, sandwich, stats
 Suggests: BiocStyle, BayesMallows, BradleyTerry2, PLMIX, ROlogit,
         StatRank, bookdown, covr, hyper2, kableExtra, knitr, lbfgs,
-        gnm, pmr, rmarkdown, testthat
+        gnm, pmr, prefmod, rmarkdown, survival, testthat
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 Language: en-GB
 NeedsCompilation: no
-Packaged: 2021-01-04 09:59:51 UTC; Heather
+Packaged: 2021-03-29 13:17:16 UTC; heather
 Author: Heather Turner [aut, cre] (<https://orcid.org/0000-0002-1256-3375>),
   Ioannis Kosmidis [aut] (<https://orcid.org/0000-0003-1556-0302>),
   David Firth [aut] (<https://orcid.org/0000-0003-0302-2312>),
   Jacob van Etten [ctb] (<https://orcid.org/0000-0001-7554-2558>)
 Maintainer: Heather Turner <ht@heatherturner.net>
 Repository: CRAN
-Date/Publication: 2021-01-04 12:40:10 UTC
+Date/Publication: 2021-03-29 14:02:09 UTC
