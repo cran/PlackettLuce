@@ -1,10 +1,3 @@
-## ----output, include = FALSE--------------------------------------------------
-output <- if (requireNamespace("BiocStyle", quietly = TRUE)) {
-  BiocStyle::html_document
-} else if (requireNamespace("bookdown", quietly = TRUE)) {
-  bookdown::html_document2
-} else html_document
-
 ## ----setup, include = FALSE---------------------------------------------------
 library(knitr)
 # if render using rmarkdown, use output format to decide table format
@@ -46,7 +39,7 @@ regressionPL <- pladmm(salad, ~ acetic + gluconic, data = features, rho = 8)
 summary(regressionPL)
 
 ## -----------------------------------------------------------------------------
-deviance(regressionPL) - deviance(standardPL)
+anova(standardPL, regressionPL)
 
 ## -----------------------------------------------------------------------------
 features2 <- data.frame(salad = LETTERS[5:6],
@@ -65,6 +58,23 @@ predict(regressionPL, features2, type = "itempar", log  = FALSE, ref = NULL)
 ## -----------------------------------------------------------------------------
 predict(regressionPL, features2, type = "itempar", log  = FALSE, ref = NULL,
         se.fit = TRUE)
+
+## -----------------------------------------------------------------------------
+set.seed(1)
+judge_features <- data.frame(varC = rpois(nrow(salad), lambda = salad$C^2))
+
+## -----------------------------------------------------------------------------
+grouped_salad <- group(as.rankings(salad), 1:nrow(salad))
+
+## -----------------------------------------------------------------------------
+tree <- pltree(grouped_salad ~ .,
+               worth = ~acetic + gluconic,
+               data = list(judge_features, features),
+               rho = 2, minsize = 10)
+plot(tree, ylines = 2)
+
+## -----------------------------------------------------------------------------
+tree
 
 ## -----------------------------------------------------------------------------
 regressionPL$pi

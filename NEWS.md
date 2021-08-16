@@ -1,3 +1,18 @@
+# PlackettLuce 0.4.1
+
+## New features
+
+* Extend `pltree` to allow option of modelling log-worth with a linear predictor (via `pladmm()`).
+* Improved handling of model formula in `pladmm()`, including possibility to specify contrasts for any factors in the formula.
+* Add anova method for PLADMM models.
+* Add `weights` argument to `pladmm()`, allowing aggregated rankings to be modelled, optionally using an `aggregate_rankings` object to specify rankings and weights together.
+
+## Bug fixes
+
+* Avoid computing variance-covariance matrix in `predict.PLADMM(vcov = FALSE)` and `AIC` when new data specified (partial fix to #50).
+* Correct residual df for PLADMM models based on partial rankings (previously assumed all rankings had equal number of items).
+* Update URL for Preflib data sets.
+
 # PlackettLuce 0.4.0
 
 * New `pladmm` function to fit the Plackett-Luce model with log-worth modelled by item covariates.

@@ -1,5 +1,5 @@
 #' @method predict PLADMM
-#' @importFrom stats as.formula model.matrix
+#' @importFrom stats as.formula model.frame model.matrix terms
 #' @export
 predict.PLADMM <- function(object, newdata = NULL,
                            type = c("lp", "itempar"),
@@ -8,13 +8,14 @@ predict.PLADMM <- function(object, newdata = NULL,
     type <- match.arg(type)
     # if newdata, create new X matrix
     if (!is.null(newdata)){
-        object$vcov <- vcov(object) # vcov based on original X matrix
-        # allow for missing factor levels (avoid terms etc for now)
-        X <- matrix(0, nrow = nrow(newdata), ncol = ncol(object$x),
-                    dimnames = list(seq(nrow(newdata)), colnames(object$x)))
-        X1 <- model.matrix(as.formula(object$call$formula), newdata)
-        X[, colnames(X1)] <- X1
-        object$x <- X
+        if (se.fit) object$vcov <- vcov(object) # vcov based on original X
+        # create new model matrix
+        worth_formula <- formula(object)
+        environment(worth_formula) <- parent.frame()
+        model_data <- model.frame(worth_formula, newdata, #na.action?
+                                  xlev = object$xlevels)
+        object$x <- model.matrix(worth_formula, model_data,
+                                 contrasts.arg = object$contrasts)
     }
     # if itempar return constrained item parameters
     if (type == "itempar"){

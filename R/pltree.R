@@ -22,20 +22,25 @@
 #' panel-generating function. The See Also
 #' section gives details of separately documented methods.
 #'
-#' @param formula a symbolic description of the model to be fitted, of the form
+#' @param formula A symbolic description of the model to be fitted, of the form
 #' \code{y ~ x1 + ... + xn} where \code{y} should be an object of class
 #' \code{\link{grouped_rankings}} and \code{x1}, \dots, \code{xn} are used as
 #'  partitioning variables.
-#' @param data an optional data frame containing the variables in the model.
-#' @param subset A specification of the rows to be used, passed to
-#' \code{\link{model.frame}}.
-#' @param na.action how NAs are treated, applied to the underlying rankings and
-#' then passed to \code{\link{model.frame}}.
+#' @param data An optional data object containing the variables in the model.
+#' Either a data frame of variables in `formula` or a list of length 2 giving
+#' data frames for variables in `formula` and in `worth`.
+#' @param worth A optional formula specifying a linear model for log-worth.
+#' If `NULL`, worth is estimated separately for each item with
+#' [`PlackettLuce()`]. Otherwise, the model in each node of the tree id fitted
+#' with [`pladmm()`].
+#' @param na.action how NAs are treated for variables in `formula`, applied
+#' to the underlying rankings.
 #' @param cluster an optional vector of cluster IDs to be employed for clustered
 #' covariances in the parameter stability tests, see \code{\link{mob}}.
 #' @param ref an integer or character string specifying the reference item (for
 #' which log ability will be set to zero). If NULL the first item is used.
-#' @param ... additional arguments, passed to \code{\link{PlackettLuce}}.
+#' @param ... additional arguments, passed to \code{\link{PlackettLuce}}
+#' of [`pladmm()`].
 #' @return An object of class \code{"pltree"} inheriting from \code{"bttree"}
 #' and \code{"modelparty"}.
 #' @seealso
@@ -81,36 +86,41 @@
 #' }
 #' @importFrom partykit mob_control
 #' @export
-pltree <- function (formula, data, subset, na.action, cluster, ref = NULL, ...){
-    m <- match.call(expand.dots = TRUE)
+pltree <- function (formula, data, worth, na.action, cluster,
+                    ref = NULL, ...){
+    pltree_call <- match.call(expand.dots = TRUE)
     # handle model frame here to preserve attributes after na.action
-    mf_args <- names(m) %in% c("formula", "data", "subset", "cluster")
-    mf <- m[c(1L, which(mf_args))]
-    mf$na.action <- "na.pass"
-    mf[[1L]] <- quote(stats::model.frame)
-    mf <- eval(mf, parent.frame())
-    if (missing(na.action)) na.action <- getOption("na.action")
-    mf <- match.fun(na.action)(mf)
-    # also need to handle NAs in partially NA grouped rankings
-    if (attr(attr(mf, "terms"), "response")){
-        mf[[1L]] <- na.omit(mf[[1L]])
-    } else stop("`formula` must specify a response (grouped rankings)")
-    control_args <- names(m) %in% names(formals(mob_control))
-    control <- do.call("mob_control", as.list(m)[control_args])
-    keep <-!names(m) %in% c("subset", "na.action", "cluster",
-                            names(formals(mob_control)))
-    m <- m[keep]
-    m$data <- quote(mf)
-    m$control <- control
-    m$fit <- as.name("plfit")
-    m[[1L]] <- quote(partykit::mob)
-    rval <- eval(m, list(mf = mf), parent.frame())
-    rval$info$call <- m
+    # and convert rankings to orderings when using PLADMM
+    mf_args <- names(pltree_call) %in%
+        c("formula", "data", "subset", "weights", "na.action")
+    pltree_data <- do.call("pltree.model.frame",
+                           c(as.list(pltree_call)[mf_args],
+                             worth = !missing(worth),
+                             envir = parent.frame()))
+    # now set up for mob/fitting function
+    control_args <- names(pltree_call) %in% names(formals(mob_control))
+    control <- do.call("mob_control", as.list(pltree_call)[control_args])
+    keep <-!names(pltree_call) %in% c("subset", "na.action",
+                                      names(formals(mob_control)))
+    mob_call <- pltree_call[keep]
+    mob_call$data <- quote(mf)
+    mob_call$control <- control
+    if (!missing(worth)){
+        # define model spec for linear predictor (model.matrix, terms, ...)
+        items <- colnames(attr(pltree_data[[1]], "rankings"))
+        mob_call$worth <- model_spec(formula = worth, data = data[[2L]],
+                                     contrasts = pltree_call[["contrasts"]],
+                                     items = items)
+        mob_call$fit <- pladmm_mob_fit
+    } else{
+        mob_call$fit <- as.name("plfit")
+    }
+    mob_call[[1L]] <- quote(partykit::mob)
+    rval <- eval(mob_call, list(mf = pltree_data), parent.frame())
+    rval$info$call <- mob_call
     rval$info$call$data <- substitute(data)
-    # replace data with mf (loses na.action attribute)
-    rval$data <- mf
     # add in na.action
-    rval$na.action <- attr(mf, "na.action")
+    rval$na.action <- attr(pltree_data, "na.action")
     class(rval) <- c("pltree", "bttree", class(rval))
     return(rval)
 }
@@ -138,21 +148,54 @@ model.frame.pltree <- function(formula, ...){
     mf <- formula$data
     if (NROW(mf) > 0L)
         return(mf)
+    # else tree fitted with `model = FALSE` passed to mob_control, so
     mf <- formula$info$call
     # get args from call to start
-    mf_args <- names(mf) %in% c("formula", "data", "subset", "na.action")
+    mf_args <- names(mf) %in%
+        c("formula", "data", "subset", "weights", "na.action")
     mf <- mf[c(1L, which(mf_args))]
     # replace with those from current call if specified
     m <- match.call(expand.dots = TRUE)
     mf_args <- !(names(m) %in% "formula")
     mf[names(mf_args)] <- m[mf_args]
-    # save and temporarily replace na.action
-    na.action <- mf$na.action
-    mf$na.action <- "na.pass"
-    mf[[1L]] <- quote(stats::model.frame)
-    if (is.null(env <- environment(formula$info$terms)))
-        env <- parent.frame()
-    mf <- eval(mf, env)
-    if (is.null(na.action)) na.action <- getOption("na.action")
+    # use pltree.model.frame to handle NAs and replace rankings with
+    # orderings when using PLADMM
+    mf[[1]] <- "pltree.model.frame"
+    mf$worth <- !is.null(formula$info$dots$worth)
+    mf$envir <- parent.frame()
+    eval(mf)
+}
+
+#' @importFrom stats model.frame
+pltree.model.frame <- function(formula, data, subset = NULL, weights = NULL,
+                               na.action = getOption("na.action"),
+                               worth = FALSE, envir = NULL){
+    # evaluate model frame arguments where expect to find data
+    expr <- match.call()
+    expr[c("worth", "envir")] <- NULL
+    expr[[1]] <- as.name("list")
+    mf_args <- eval(expr, envir = envir)
+    # pass NAs initially
+    mf_args$na.action <- "na.pass"
+    # get data corresponding to grouped rankings
+    if (worth){
+        if (inherits(mf_args$data, "data.frame"))
+            stop("`data` should be a list of two data frames")
+        # use group-level data (for now assume in order)
+        mf_args$data <- mf_args$data[[1L]]
+    }
+    mf <- do.call("model.frame", mf_args)
+
+    # now handle NAs
     mf <- match.fun(na.action)(mf)
+    # also need to handle NAs in partially NA grouped rankings
+    if (attr(attr(mf, "terms"), "response")){
+        mf[[1L]] <- na.omit(mf[[1L]])
+        if (worth){
+            # convert grouped rankings to grouped orderings
+            ord <- convert_to_orderings(attr(mf[[1L]], "rankings"))
+            attr(mf[[1L]], "rankings")[] <- ord[]
+        }
+    }
+    mf
 }

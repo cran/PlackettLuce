@@ -1,10 +1,3 @@
-## ----output, include = FALSE--------------------------------------------------
-output <- if (requireNamespace("BiocStyle", quietly = TRUE)) {
-  BiocStyle::html_document
-} else if (requireNamespace("bookdown", quietly = TRUE)) {
-  bookdown::html_document2
-} else html_document
-
 ## ----setup, include = FALSE---------------------------------------------------
 library(knitr)
 eval_all <- FALSE # evaluate all timings and pltree?
@@ -26,7 +19,7 @@ as.matrix(data.frame(choice = c(1, 1, 1, 2, 2),
 ## ----soc, eval = eval_all, echo = FALSE---------------------------------------
 #  library(PlackettLuce)
 #  # read in example data sets
-#  preflib <- "https://www.preflib.org/data/election/"
+#  preflib <- "https://www.preflib.org/static/data/ED/"
 #  netflix <- read.soc(file.path(preflib, "netflix/ED-00004-00000101.soc"))
 #  tshirt <- read.soc(file.path(preflib, "shirt/ED-00012-00000001.soc"))
 #  sushi <- read.soc(file.path(preflib, "sushi/ED-00014-00000001.soc"))
@@ -322,20 +315,23 @@ format(head(G, 2), width = 50)
 
 ## ----save-tree, echo = FALSE--------------------------------------------------
 if (eval_all){
-    saveRDS(tree, "pltree.rds", version = 2)
-} else {
-    tree <- readRDS("pltree.rds")
+    png("pltree.png", width = 11, height = 5, units = "in", res = 72)
+    plot(tree, names = FALSE, abbreviate = 2, ylines = 2)
+    dev.off()
 }
 
-## ----plot-pltree, fig.wide = TRUE, fig.cap = "Worth parameters for the ten trial varieties and the local variety for each node in the Plackett-Luce tree. Varieties are 1: ALS 0532-6, 2: BRT 103-182, 3: INTA Centro Sur, 4: INTA Ferroso, 5: INTA Matagalpa, 6: INTA Precoz, 7: INTA Rojo, 8: INTA Sequia, 9: Local, 10: PM2 Don Rey, 11: SJC 730-79."----
-plot(tree, names = FALSE, abbreviate = 2)
+## ----plot-pltree-code, eval = FALSE-------------------------------------------
+#  plot(tree, names = FALSE, abbreviate = 2, ylines = 2)
+
+## ----plot-pltree, fig.wide = TRUE, fig.cap = "Worth parameters for the ten trial varieties and the local variety for each node in the Plackett-Luce tree. Varieties are 1: ALS 0532-6, 2: BRT 103-182, 3: INTA Centro Sur, 4: INTA Ferroso, 5: INTA Matagalpa, 6: INTA Precoz, 7: INTA Rojo, 8: INTA Sequia, 9: Local, 10: PM2 Don Rey, 11: SJC 730-79.", fig.width = 11, fig.height = 5, out.width = "\\textwidth", echo = FALSE----
+include_graphics("pltree.png")
 
 ## ----show-soc-----------------------------------------------------------------
 
 ## ----soc, eval = FALSE--------------------------------------------------------
 #  library(PlackettLuce)
 #  # read in example data sets
-#  preflib <- "https://www.preflib.org/data/election/"
+#  preflib <- "https://www.preflib.org/static/data/ED/"
 #  netflix <- read.soc(file.path(preflib, "netflix/ED-00004-00000101.soc"))
 #  tshirt <- read.soc(file.path(preflib, "shirt/ED-00012-00000001.soc"))
 #  sushi <- read.soc(file.path(preflib, "sushi/ED-00014-00000001.soc"))

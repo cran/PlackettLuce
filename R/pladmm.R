@@ -33,9 +33,14 @@
 #' \eqn{\boldsymbol{X}\boldsymbol{\beta}}{X \beta}).
 #'
 #' @param rankings a \code{"\link{rankings}"} object, or an object that can be
-#' coerced by \code{as.rankings}.
+#' coerced by \code{as.rankings}. An [`"aggregated_rankings"`][aggregate()]
+#' object can be used to specify rankings and weights simultaneously.
 #' @param formula a [formula] specifying the linear model for log-worth.
 #' @param data a data frame containing the variables in the model.
+#' @param weights weights for the rankings.
+#' @param start starting values for the coefficients.
+#' @param contrasts an optional list specifying contrasts for the factors in
+#' `formula`. See the `contrasts.arg` of [model.matrix()].
 #' @param rho the penalty parameter in the penalized likelihood, see details.
 #' @param n_iter the maximum number of iterations (also for inner loops).
 #' @param rtol the convergence tolerance (also for inner loops)
@@ -80,7 +85,10 @@
 #' @export
 pladmm <- function(rankings, # rankings object as used in PlackettLuce
                    formula, # formula for linear predictor
-                   data,
+                   data = NULL,
+                   weights = freq(rankings), # weights for rankings
+                   start = NULL, # starting values for the beta coefficients
+                   contrasts = NULL,
                    rho = 1, # penalty parameter
                    n_iter = 500, # main iter, pi update & stationary dist
                    # used in convergence checks: main iter, init of beta (
@@ -88,56 +96,140 @@ pladmm <- function(rankings, # rankings object as used in PlackettLuce
                    rtol = 1e-4
                    ){
     call <- match.call()
-    epsilon <- .Machine$double.eps # added to pi avoid logging zero
+
+    if (inherits(rankings, "aggregated_rankings")){
+        force(weights)
+        rankings <- as.rankings(rankings$ranking)
+    }
+
     # convert dense rankings to orderings as used in original Python functions
+    orderings <- convert_to_orderings(rankings)
+    if (is.null(weights)) weights <- rep.int(1L, nrow(orderings))
+
+    # model spec (model matrix and terms)
+    spec <- model_spec(formula = formula, data = data,
+                       contrasts = contrasts, items = colnames(rankings))
+
+    # model fit
+    fit <- pladmm_fit(orderings = orderings, X = spec$x,
+                      weights = weights, start = start,
+                      rho = rho, maxit = n_iter,
+                      rtol = rtol)
+
+    # rank
+    # (would complain earlier if X not full rank; -1 due to constraint on pi)
+    rank <- ncol(spec$x) - 1
+    # df.residual
+    n <- rowSums(orderings != 0)
+    # frequencies of sets selected from, for sizes 2 to max observed
+    freq <- weights*(n - 1)
+    # number of possible selections overall (can only choose 1 from each set)
+    n_opt <-  weights*(n*(n + 1)/2 - 1)
+    df.residual <- sum(n_opt) - sum(freq) - rank
+
+    fit <- c(# results from pladmm_fit
+        fit,
+        # supplementary
+        list(call = call,
+             x = spec$x,
+             terms = spec$terms,
+             xlevels = spec$xlevels,
+             contrasts = spec$contrasts,
+             orderings = orderings,
+             weights = weights,
+             rank = rank,
+             df.residual = df.residual))
+    class(fit) <- "PLADMM"
+    fit
+}
+
+convert_to_orderings <- function(rankings){
     # (allow for partial rankings)
     rankings <- as.matrix(as.rankings(rankings))
     rankings[rankings == 0] <- NA
     part_order <- function(x) c(order(x, na.last = NA), numeric(sum(is.na(x))))
-    orderings <- t(apply(rankings, 1, part_order))
-    items <- colnames(rankings)
-    # check X
-    X <- model.matrix(formula, data)
-    if (!"(Intercept)" %in% colnames(X))
-        stop("`X` must contain an intercept")
-    # pairwise probability of win/loss
-    mat_Pij <- est_Pij(nrow(X), orderings)
+    structure(t(apply(rankings, 1, part_order)),
+              items = colnames(rankings))
+}
+
+#' @importFrom stats .getXlevels model.frame terms
+model_spec <- function(formula, data,
+                       contrasts = NULL, items){
+    # create model frame: can use data from environment of formula
+    model_data <- model.frame(formula, data = data,
+                              drop.unused.levels = TRUE)
+    # check variables correct length
+    if (nrow(model_data) != length(items))
+        stop("length of variables in `formula` ",
+             "does not match the number of items")
+
+    # create model terms and model matrix
+    model_terms <- terms(formula, data = data)
+    X <- model.matrix(model_terms, data = model_data,
+                      contrasts.arg = contrasts)
+    rownames(X) <- items
+    # check model contains an intercept
+    # (don't use terms as intercept may be included in matrix term)
+    if (!all(X[,1] == 1L))
+        stop("`formula` must contain an intercept")
+
+    list(x = X, terms = model_terms,
+         xlevels = .getXlevels(model_terms, model_data),
+         contrasts = contrasts)
+}
+
+pladmm_fit <- function(orderings, # low-level fit uses orderings
+                       X, # model.matrix for linear predictor of worth
+                       weights, # weights for orderings
+                       start = NULL, # starting values for the beta coefficients
+                       rho = 1, # penalty parameter
+                       maxit = 500, # main iter, pi update & stationary dist
+                       # used in convergence checks: main iter, init of beta (
+                       # & pi if QP init used), pi update & stationary dist
+                       rtol = 1e-4){
+    epsilon <- .Machine$double.eps # added to pi avoid logging zero
+
+    n <- dim(X)[1]
+    pi_init <- rep.int(1/n, n)
 
     # initialization of parameters
-    inits <-  init_params(X[,-1, drop = FALSE], orderings, mat_Pij,
-                          method_beta_b_init = "QP")
-
-    # quantities to update in iterations
-    log_admm <- ADMM_log$new(orderings, X[,-1, drop = FALSE],
-                             method_pi_tilde_init = "prev")
-    conv <- FALSE
-    beta_iter <- c("(Intercept)" = 0, inits$exp_beta_init)
-    ## set intercept so that exp(X*beta_iter) sum to 1
-    lambda <- X %*% beta_iter
-    beta_iter[1] <- -log(sum(exp(lambda)))
+    pi_iter <- rep.int(1/n, n)
+    u_iter <- numeric(n)
+    if (is.null(start)) {
+        ## pairwise probability of win/loss
+        mat_Pij <- est_Pij(n, orderings, weights)
+        init <- init_exp_beta(X[,-1, drop = FALSE], weights, mat_Pij)
+        ## beta coef
+        beta_iter <- c("(Intercept)" = 0, init$exp_beta_init)
+        ## set intercept so that exp(X*beta_iter) sum to 1
+        lambda <- X %*% beta_iter
+        beta_iter[1] <- -log(sum(exp(lambda)))
+    } else beta_iter <- start
     tilde_pi_iter <- drop(exp(X %*% beta_iter))
-    pi_iter <- inits$pi_init
-    u_iter <- inits$u_init
-    time <- inits$time_exp_beta_init + inits$time_u_init
+
+    # set statistics for optimisation/monitoring
     diff_pi <- norm(pi_iter)
     diff_beta <- norm(beta_iter)
     prim_feas <- norm(X %*% beta_iter - log(pi_iter + epsilon))
     dual_feas <- norm(t(X) %*% log(pi_iter + epsilon))
-    obj <- objective(tilde_pi_iter, orderings)
-    iter <- 0
+    obj <- objective(tilde_pi_iter, orderings, weights, epsilon)
 
     # iterative updates
-    p <- ncol(X)
-    for (iter in seq_len(n_iter)){
+    iter <- 0
+    time <- numeric(0)
+    log_admm <- ADMM_log$new(orderings, X[,-1, drop = FALSE], weights,
+                             method_pi_tilde_init = "prev")
+    conv <- FALSE
+    for (iter in seq_len(maxit)){
         # log_admm update
         if (!conv){
             pi_prev <- pi_iter
             beta_prev <- beta_iter
             tilde_pi_prev <- tilde_pi_iter
 
-            res <- log_admm$fit_log(rho = rho, weights = pi_iter,
+            res <- log_admm$fit_log(rho = rho, pi = pi_iter,
                                     beta = beta_iter, u = u_iter)
-            pi_iter <- res$weights
+            pi_iter <- res$pi
             beta_iter <- res$beta
             b_iter <- res$b
             u_iter <- res$u
@@ -152,7 +244,7 @@ pladmm <- function(rankings, # rankings object as used in PlackettLuce
             dual_feas <- c(dual_feas,
                            norm(t(X) %*% (log(pi_prev + epsilon) -
                                               log(pi_iter + epsilon))))
-            obj <- c(obj, objective(tilde_pi_iter, orderings, epsilon))
+            obj <- c(obj, objective(tilde_pi_iter, orderings, weights, epsilon))
             iter <- iter + 1
             conv <- norm(pi_prev - pi_iter) < rtol * norm(pi_iter) &&
                 norm(tilde_pi_prev - tilde_pi_iter) < rtol * norm(tilde_pi_iter)
@@ -167,37 +259,22 @@ pladmm <- function(rankings, # rankings object as used in PlackettLuce
     time_cont <- vapply(seq_along(time),
                         function(ind) sum(time[1:ind]), numeric(1))
 
-    # for now assume all rankings same length
-    n <- ncol(orderings)
-    M <- nrow(orderings)
-    # frequencies of sets selected from, for sizes 2 to max observed
-    freq <- M*(n - 1)
-    # number of possible selections overall (can only choose 1 from each set)
-    n_opt <-  M*(n*(n + 1)/2 - 1)
-    # would complain earlier if X not full rank; -1 due to constraint on pi
-    rank <- ncol(X) - 1
-    df.residual <- n_opt - sum(freq) - rank
-
     # name outputs related to items
-    names(pi_iter) <- names(u_iter) <- names(tilde_pi_iter) <- rownames(X) <-
-        items
+    names(pi_iter) <- names(u_iter) <- names(tilde_pi_iter) <-
+        attr(orderings, "items")
 
-    fit <- list(call = call,
-                # parameters from last iteration
-                coefficients = beta_iter,
-                pi = pi_iter,
-                u = u_iter, tilde_pi = tilde_pi_iter,
-                # stored information from all iterations
-                time = time_cont, diff_pi = diff_pi, diff_beta = diff_beta,
-                prim_feas = prim_feas, dual_feas = dual_feas,
-                loglik = obj,
-                # supplementary
-                x = X,
-                orderings = orderings,
-                rank = rank,
-                df.residual = df.residual,
-                # algorithm status
-                iter = iter, conv = conv)
-    class(fit) <- "PLADMM"
-    fit
+    # return result of fit
+    list(# parameters from last iteration
+        coefficients = beta_iter,
+        pi = pi_iter,
+        u = u_iter, tilde_pi = tilde_pi_iter,
+        # stored information from all iterations
+        time = time_cont, diff_pi = diff_pi, diff_beta = diff_beta,
+        prim_feas = prim_feas, dual_feas = dual_feas,
+        loglik = obj,
+        # algorithm status
+        iter = iter, conv = conv,
+        # control parameters
+        rho = rho, maxit = maxit, rtol = rtol
+        )
 }

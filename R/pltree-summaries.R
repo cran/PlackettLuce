@@ -63,6 +63,8 @@ NULL
 #' @importFrom partykit info_node nodeids
 #' @export
 coef.pltree <- function (object, node = NULL, drop = TRUE, ...) {
+    if (!inherits(info_node(object[[1]]$node)$object, "PlackettLuce"))
+        return(NextMethod())
     if (is.null(node)){
         ids <- nodeids(object, terminal = TRUE)
     } else ids <- node
@@ -109,6 +111,7 @@ coef.pltree <- function (object, node = NULL, drop = TRUE, ...) {
 
 #' @rdname pltree-summaries
 #' @method vcov pltree
+#' @export
 vcov.pltree <- function (object, node = nodeids(object, terminal = TRUE), ...){
     nodeapply(object, ids = node,
               FUN = function(n) vcov(info_node(n)$object, ...))
@@ -116,31 +119,41 @@ vcov.pltree <- function (object, node = nodeids(object, terminal = TRUE), ...){
 
 #' @rdname pltree-summaries
 #' @method AIC pltree
-#' @importFrom stats formula logLik model.frame model.response model.weights
+#' @importFrom stats formula logLik model.response model.weights
 #' @export
 AIC.pltree <- function(object, newdata = NULL, ...) {
     if (is.null(newdata)) {
         return(NextMethod(object, ...))
     }
-    # create model.frame from newdata
+    has_worth <- !is.null(object$info$dots$worth)
+    # create model.frame from newdata for use by predict.modelparty
+    pltree_data <- do.call("pltree.model.frame",
+                           c(list(formula = formula(object),
+                                  data = newdata),
+                             list(...),
+                             worth = has_worth,
+                             envir = parent.frame()))
+    # need response for AIC as based on log-likehood of data given model
     response <- as.character(formula(object)[[2L]])
-    if (!response %in% colnames(newdata))
+    if (!response %in% colnames(pltree_data))
         stop("`newdata` must include response")
-    f <- formula(object)
-    environment(f) <- parent.frame()
-    newdata <- model.frame(f, data = newdata, ...)
-    # predict node for each grouped rankingnodeids(tm_tree, terminal = TRUE)
+    # predict node for each grouped ranking
     node <- partykit::predict.modelparty(object,
-                                         newdata = newdata,
+                                         newdata = pltree_data,
                                          type = "node")
     # set up to refit models based on newdata
-    cf <- itempar(object)
+    cf <- coef(object, log = FALSE)
     if (is.null(dim(cf))) cf <- t(as.matrix(cf))
     nodes <- partykit::nodeids(object, terminal = TRUE)
-    dots <- object$info$dots
-    G <- model.response(newdata)
-    w <- model.weights(newdata)
+    G <- model.response(pltree_data)
+    w <- model.weights(pltree_data)
     if (is.null(w)) w <- rep.int(1L, length(G))
+    dots <- object$info$dots
+    if (has_worth){
+        dots$worth <- model_spec(formula = dots$worth, data = newdata[[2L]],
+                                 contrasts = object$info$dots$contrasts,
+                                 items = colnames(attr(G, "rankings")))
+    }
     LL <- df <- numeric(length(nodes))
     for (i in seq_along(nodes)){
         # fit model with coef fixed to get logLik
@@ -148,7 +161,7 @@ AIC.pltree <- function(object, newdata = NULL, ...) {
         id <- node == nodes[i]
         if (sum(id)) {
             fit <- suppressWarnings(
-                do.call("plfit",
+                do.call(object$info$fit,
                         c(list(y = G[id,],
                                start = cf[i,],
                                weights = w[id],
@@ -164,34 +177,59 @@ AIC.pltree <- function(object, newdata = NULL, ...) {
 
 #' @rdname pltree-summaries
 #' @method predict pltree
+#' @importFrom stats model.frame
 #' @export
 predict.pltree <- function(object, newdata = NULL,
                            type = c("itempar", "rank", "best", "node"),
                            ...) {
     type <- match.arg(type)
+    has_worth <- !is.null(object$info$dots$worth)
+    if (is.null(newdata)) {
+        pltree_data <- model.frame(object)
+        worth_data <- NULL # (not needed to compute itempar)
+        na.action <- attr(pltree_data, "na.action")
+    } else {
+        # get newdata for use by predict.PLADMM (NULL if not using worth model)
+        if (has_worth) {
+            if (inherits(newdata, "data.frame"))
+                stop("`newdata` should be a list of two data frames")
+            worth_data <- newdata[[2]]
+        } else worth_data <- NULL
+        # create model.frame from newdata for use by predict.modelparty
+        # - drop response from formula as predicting response
+        predict_call <- match.call(expand.dots = TRUE)
+        mf_args <- names(predict_call) %in% c("subset", "weights", "na.action")
+        pltree_data <- do.call("pltree.model.frame",
+                               c(list(formula = formula(object)[-2L],
+                                      data = newdata),
+                                 as.list(predict_call)[mf_args],
+                                 worth = has_worth,
+                                 envir = parent.frame()))
+    }
     if (type == "node"){
         res <- partykit::predict.modelparty(object,
-                                            newdata = newdata,
+                                            newdata = pltree_data,
                                             type = "node")
         return(structure(as.character(res),
                          names = as.character(seq_along(res))))
     }
-    if (is.null(newdata)) {
-        newdata <- model.frame(object)
-        na.action <- attr(newdata, "na.action")
-    } else na.action <- NULL
     pred <- switch(type,
                    itempar = function(obj, ...) {
-                       t(as.matrix(itempar(obj, ...)))
+                       t(as.matrix(predict.PLADMM(obj, newdata = worth_data,
+                                                  type = "itempar", ...)))
                    },
                    rank = function(obj, ...) {
-                       t(as.matrix(rank(-obj$coefficients)))
+                       ip <- predict.PLADMM(obj, newdata = worth_data,
+                                            type = "itempar", ...)
+                       t(as.matrix(rank(-ip)))
                    },
                    best = function(obj, ...) {
-                       nm <- names(obj$coefficients)
-                       nm[which.max(obj$coefficients)]
+                       ip <- predict.PLADMM(obj, newdata = worth_data,
+                                            type = "itempar", ...)
+                       nm <- names(ip)
+                       nm[which.max(ip)]
                    })
-    out <- partykit::predict.modelparty(object, newdata = newdata,
+    out <- partykit::predict.modelparty(object, newdata = pltree_data,
                                         type = pred, ...)
     if (is.null(na.action) | !inherits(na.action, "exclude")) return(out)
     n_miss <- length(na.action)
