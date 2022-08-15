@@ -1,7 +1,7 @@
 Package: PlackettLuce
 Type: Package
 Title: Plackett-Luce Models for Rankings
-Version: 0.4.1
+Version: 0.4.2
 Authors@R: c(person("Heather", "Turner",
         email = "ht@heatherturner.net", role = c("aut", "cre"),
         comment = c(ORCID = "0000-0002-1256-3375")),
@@ -39,12 +39,13 @@ Suggests: BiocStyle, BayesMallows, BradleyTerry2, PLMIX, ROlogit,
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 Language: en-GB
+Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2021-08-16 13:34:45 UTC; Heather
+Packaged: 2022-08-13 12:14:10 UTC; heather
 Author: Heather Turner [aut, cre] (<https://orcid.org/0000-0002-1256-3375>),
   Ioannis Kosmidis [aut] (<https://orcid.org/0000-0003-1556-0302>),
   David Firth [aut] (<https://orcid.org/0000-0003-0302-2312>),
   Jacob van Etten [ctb] (<https://orcid.org/0000-0001-7554-2558>)
 Maintainer: Heather Turner <ht@heatherturner.net>
 Repository: CRAN
-Date/Publication: 2021-08-16 15:40:02 UTC
+Date/Publication: 2022-08-15 07:50:05 UTC
