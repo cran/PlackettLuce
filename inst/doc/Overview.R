@@ -19,10 +19,10 @@ as.matrix(data.frame(choice = c(1, 1, 1, 2, 2),
 ## ----soc, eval = eval_all, echo = FALSE---------------------------------------
 #  library(PlackettLuce)
 #  # read in example data sets
-#  preflib <- "https://www.preflib.org/static/data/ED/"
-#  netflix <- read.soc(file.path(preflib, "netflix/ED-00004-00000101.soc"))
-#  tshirt <- read.soc(file.path(preflib, "shirt/ED-00012-00000001.soc"))
-#  sushi <- read.soc(file.path(preflib, "sushi/ED-00014-00000001.soc"))
+#  preflib <- "https://www.preflib.org/static/data/"
+#  netflix <- read.soc(file.path(preflib, "netflix/00004-00000101.soc"))
+#  tshirt <- read.soc(file.path(preflib, "shirt/00012-00000001.soc"))
+#  sushi <- read.soc(file.path(preflib, "sushi/00014-00000001.soc"))
 
 ## ----wrappers, eval = eval_all, echo = FALSE----------------------------------
 #  pl <- function(dat, ...){
@@ -331,10 +331,10 @@ include_graphics("pltree.png")
 ## ----soc, eval = FALSE--------------------------------------------------------
 #  library(PlackettLuce)
 #  # read in example data sets
-#  preflib <- "https://www.preflib.org/static/data/ED/"
-#  netflix <- read.soc(file.path(preflib, "netflix/ED-00004-00000101.soc"))
-#  tshirt <- read.soc(file.path(preflib, "shirt/ED-00012-00000001.soc"))
-#  sushi <- read.soc(file.path(preflib, "sushi/ED-00014-00000001.soc"))
+#  preflib <- "https://www.preflib.org/static/data/"
+#  netflix <- read.soc(file.path(preflib, "netflix/00004-00000101.soc"))
+#  tshirt <- read.soc(file.path(preflib, "shirt/00012-00000001.soc"))
+#  sushi <- read.soc(file.path(preflib, "sushi/00014-00000001.soc"))
 
 ## ----chunk2-------------------------------------------------------------------
 
